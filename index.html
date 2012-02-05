@@ -13,9 +13,9 @@
 
       // Put custom repo URL's in this object, keyed by repo name.
       var repoUrls = {
-        "bootstrap": "http://twitter.github.com/bootstrap/",
-        "finagle": "http://twitter.github.com/finagle/",
-        "hogan.js": "http://twitter.github.com/hogan.js/"
+        "django-modular-settings": "https://github.com/brack3t/django-modular-settings",
+        "Banana-Py": "https://github.com/brack3t/Banana-Py",
+        "Redbeard": "https://github.com/brack3t/Redbeard"
       };
 
       function repoUrl(repo) {
@@ -24,8 +24,9 @@
 
       // Put custom repo descriptions in this object, keyed by repo name.
       var repoDescriptions = {
-        "bootstrap": "An HTML, CSS, and JS toolkit designed to kickstart development of webapps and sites",
-        "naggati2": "A protocol builder for Netty using Scala 2.8"
+        "django-modular-settings": "A quick, automated way to transition from settings.py to a folder of settings.",
+        "Banana-Py": "OAuth for MailChimp-powered Django apps.",
+        "Redbeard": "A PHPMyAdmin-style interface to local Redis databases."
       };
 
       function repoDescription(repo) {
@@ -63,7 +64,7 @@
         $item.appendTo("#repos");
       }
 
-      $.getJSON("https://api.github.com/orgs/twitter/repos?callback=?", function (result) {
+      $.getJSON("https://api.github.com/orgs/brack3t/repos?callback=?", function (result) {
         var repos = result.data;
 
         $(function () {
@@ -109,7 +110,7 @@
         });
       });
 
-      $.getJSON("https://api.github.com/orgs/twitter/members?callback=?", function (result) {
+      $.getJSON("https://api.github.com/orgs/brack3t/members?callback=?", function (result) {
         var members = result.data;
 
         $(function () {
@@ -209,26 +210,24 @@
   <body>
     <div id="wrapper" class="grid clearfix">
       <div id="main" class="grid-1">
-        <div id="logo"><h1>Twitter Open Source</h1></div>
-        <h1>Twitter is built on open source software.</h1>
-        <p>Want to help? <a href="https://twitter.com/jobs">Join the Flock</a></p>
-        <p>Visit <a href="https://dev.twitter.com/">dev.twitter.com</a></p>
-        <p><a href="https://twitter.com/about/resources">Logos and other goodies</a></p>
+        <div id="logo"><h1>Brack3t Open Source</h1></div>
+        <h1>Brack3t builds and is built on open source.</h1>
+        <p>Visit us at <a href="http://brack3t.com/">brack3t.com</a></p>
       </div>
 
       <div class="grid grid-3">
         <div id="statistics" class="grid-1 alpha header">
           <h1>Statistics</h1>
           <p>
-            <a href="https://github.com/twitter/repositories"><span id="num-repos">&nbsp;</span> public repos</a>
+            <a href="https://github.com/brack3t/repositories"><span id="num-repos">&nbsp;</span> public repos</a>
             <br>
-            <a href="https://github.com/twitter"><span id="num-members">&nbsp;</span> members</a>
+            <a href="https://github.com/brack3t"><span id="num-members">&nbsp;</span> members</a>
           </p>
-          <p class="email"><a href="mailto:opensource@twitter.com">opensource@twitter.com</a></p>
+          <p class="email"><a href="mailto:devs@brack3t.com">devs@brack3t.com</a></p>
         </div>
 
         <div id="recently-updated" class="grid-2 omega header">
-          <h1>Recently updated <a href="https://github.com/twitter/repositories">View All on GitHub</a></h1>
+          <h1>Recently updated <a href="https://github.com/brack3t/repositories">View All on GitHub</a></h1>
           <ol id="recently-updated-repos"></ol>
         </div>
       </div>
