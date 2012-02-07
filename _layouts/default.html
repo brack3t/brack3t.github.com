@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="{{ page.description }}">
+    <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400,900,900italic,400italic,700,700italic" rel="stylesheet">
+    <link href="/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/assets/bootstrap/images/favicon.ico">
+    <link rel="apple-touch-icon" href="/assets/bootstrap/images/apple-touch-icon.png">
+
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/bootstrap/images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/bootstrap/images/apple-touch-icon-114x114.png">
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row">
+            <div class="span8" id="main" role="main">
+                {{ content }}
+            </div>
+            <aside class="span4" id="sidebar" role="complementary">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                </header>
+            </aside>
+        </div>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/assets/jquery-1.7.1.min.js"></script>
+    <script src="/assets/jquery.slabtext.min.js"></script>
+    <script src="/assets/jquery.fittext.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText();
+            $(".fittext").fitText(0.8);
+        });
+    </script>
+  </body>
+</html>
+
