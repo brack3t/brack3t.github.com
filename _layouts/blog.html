@@ -36,29 +36,17 @@
         </div>
 
         <div class="row-fluid">
+            <aside class="span4">
+                <h1><span class="slabtext">{{ page.title }}</span></h1>
+                <time datetime="{{ page.date }}">{{ page.date | date_to_long_string }}</time>
+            </aside>
             <div class="span6" id="main" role="main">
                 {{ content }}
             </div>
-            <aside class="span6" id="sidebar" role="complementary">
-                <div class="span3">
-                    <h2>Our menu</h2>
-                    <nav>
-                        <ul>
-                            <li><a href="/projects/">Projects</a></li>
-                            <li><a href="/about/">About</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="span3">
-                    <h2>Recent posts</h2>
-                    <ul>
-                    {% for post in site.posts limit:5 %}
-                        <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-                    {% endfor %}
-                    </ul>
-                </div>
-            </aside>
         </div>
+        <footer>
+            <p><a href="/blog/">Back to blog</a> &copy; 2012 Brack3t. Don't be a dick.</p>
+        </footer>
     </div> <!-- /container -->
 
     <!-- Le javascript
