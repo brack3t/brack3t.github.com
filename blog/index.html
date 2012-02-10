@@ -3,8 +3,21 @@ layout: default
 title: Blog
 ---
 
-<ul>
-{% for post in paginator.posts %}
-    <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-{% endfor %}
-</ul>
+<section>
+    <h1>Posts</h1>
+    <ul>
+    {% for post in paginator.posts %}
+        <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+    </ul>
+    {% if paginator.previous_page or paginator.next_page %}
+    <ul class="pager">
+        {% if paginator.next_page %}
+        <li class="previous"><a href="/blog/page{{ paginator.next_page }}">&larr; Older</a></li>
+        {% endif %}
+        {% if paginator.previous_page %}
+        <li class="next"><a href="/blog/page{{ paginator.previous_page }}">Newer &rarr;</a></li>
+        {% endif %}
+    </ul>
+    {% endif %}
+</section>
