@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block indextitle %}{% endblock %}
+{% block content %}
+    <article>
+        <header>
+            <h1>{{ article.title }}</h1>
+        </header>
+        {{ article.content }}
+        <h6>{% include "metadata.html" %}</h6>
+    </article>
+{% endblock %}

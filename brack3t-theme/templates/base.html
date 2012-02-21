@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block windowtitle %}{{ SITENAME }}{% endblock %}</title>
+    <meta name="description" content="">
+    <meta name="author" content="{{ AUTHOR }}">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400,900,900italic,400italic,700,700italic" rel="stylesheet">
+    <link href="{{ SITEURL }}/brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="{{ SITEURL }}/brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row">
+            <div class="span6">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                </header>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span4" id="main" role="main">
+                {% block indextitle %}<div class="page-header"><h1>{% block title %} {{ self.windowtitle() }} {% endblock %}</h1></div>{% endblock %}
+                {% block content %}{% endblock %}
+            </div>
+            <aside class="span2" id="sidebar" role="complementary">
+                <h2>Our menu</h2>
+                <nav>
+                    <ul>
+                        {% for title, link in MENUITEMS %}
+                        <li><a href="{{ link }}">{{ title }}</a></li>
+                        {% endfor %}
+                        {% if DISPLAY_PAGES_ON_MENU %}
+                            {% for page in PAGES %}
+                            <li><a href="{{ SITEURL }}/pages/{{ page.url }}">{{ page.title }}</a></li>
+                            {% endfor %}
+                        {% endif %}
+                        <li><a href="{{ SITEURL }}/pages/projects.html">Projects</a></li>
+                        <li><a href="{{ SITEURL }}/archives.html">Archives</a></li>
+                        <li><a href="{{ SITEURL }}/tags.html">Tags</a></li>
+                    </ul>
+                </nav>
+            </aside>
+        </div>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{{ SITEURL }}/brack3t-theme/assets/jquery-1.7.1.min.js"></script>
+    <script src="{{ SITEURL }}/brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src="{{ SITEURL }}/brack3t-theme/assets/jquery.fittext.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText();
+            $(".fittext").fitText(0.8);
+        });
+    </script>
+  </body>
+</html>
+
