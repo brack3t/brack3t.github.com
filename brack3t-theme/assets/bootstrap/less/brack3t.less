@@ -50,6 +50,7 @@ article {
             text-align: center;
             span {
                 margin-left: 1em;
+                white-space: pre;
 
                 &:first-child {
                     margin-left: 0;
@@ -129,6 +130,35 @@ aside {
     }
 }
 
+#sidebar {
+    clear: both;
+    margin-left: 0;
+
+    nav {
+        background: @grayDark;
+        overflow: hidden;
+
+        ul {
+            margin: 0 auto;
+            overflow: hidden;
+            width: 60%;
+
+            li {
+                float: left;
+
+                a {
+                    color: @white;
+                    display: block;
+                    font-weight: 700;
+                    letter-spacing: 0.125rem;
+                    padding: 1em;
+                    text-transform: uppercase;
+                }
+            }
+        }
+    }
+}
+
 #logo {
     padding-top: 3em;
 
@@ -157,28 +187,8 @@ footer {
             text-align: center;
         }
     }
+}
 
-    #sidebar nav {
-        background: @grayDark;
-        overflow: hidden;
-
-        ul {
-            margin: 0 auto;
-            overflow: hidden;
-            width: 60%;
-
-            li {
-                float: left;
-
-                a {
-                    color: @white;
-                    display: block;
-                    font-weight: 700;
-                    letter-spacing: 0.125rem;
-                    padding: 1em;
-                    text-transform: uppercase;
-                }
-            }
-        }
-    }
+@media (min-width: 768px) and (max-width: 1024px) {
+    #sidebar nav ul { width: 100%; }
 }
