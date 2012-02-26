@@ -2,7 +2,7 @@
 @import "mixins.less";
 
 html, body {
-    font-family: "Alegreya", "helvetica neue", helvetica, arial;
+    font-family: "Exo", "helvetica neue", helvetica, arial;
 }
 
 .slabtexted .slabtext {
@@ -15,7 +15,7 @@ html, body {
 }
 .slabtextdone .slabtext {
     display: block;
-    line-height: 0.7;
+    line-height: 0.8;
 }
 
 #main {
@@ -23,44 +23,86 @@ html, body {
 }
 
 article {
+    margin-bottom: 3em;
+
     h1 {
+        font-size: 60px;
         font-weight: 900;
-        margin-bottom: 1em;
+        margin-bottom: 0.25em;
         text-transform: uppercase;
+        text-align: center;
 
         a {
             color: @grayDark;
+            font-weight: inherit;
 
             &:hover {
-                color: @gray;
+                color: @linkColor;
+                text-decoration: none;
             }
         }
     }
+
+    header {
+        margin-bottom: 0.5em;
+
+        h6 {
+            text-align: center;
+            span {
+                margin-left: 1em;
+
+                &:first-child {
+                    margin-left: 0;
+                }
+
+                strong {
+                    color: @grayDarker;
+                }
+            }
+        }
+    }
+
     time {
         font-size: 1.5em;
         font-weight: 400;
     }
+
     p {
         font-size: 14px;
         line-height: 24px;
         margin-bottom: 12px;
     }
 
+    a {
+        font-weight: 700;
+        letter-spacing: 0.1rem;
+    }
+
     blockquote {
         background: @grayLighter;
         border-left: 0;
+        color: @black;
+        font-size: 1.25em;
+        font-weight: 200;
+        line-height: 1.2;
         padding: 10px;
         padding-left: 20px;
         position: relative;
+
+        strong {
+            font-weight: 500;
+        }
 
         &:before {
             color: @grayLight;
             content: "“";
             font-size: 5em;
-            font-weight: 900;
-            left: -0.25em;
+            font-style: italic;
+            font-weight: 700;
+            left: -0.2em;
             position: absolute;
             text-shadow: 2px 2px 2px @white;
+            top: -25px;
         }
         p {
             font-size: 16px;
@@ -113,6 +155,30 @@ footer {
     article {
         h1 {
             text-align: center;
+        }
+    }
+
+    #sidebar nav {
+        background: @grayDark;
+        overflow: hidden;
+
+        ul {
+            margin: 0 auto;
+            overflow: hidden;
+            width: 60%;
+
+            li {
+                float: left;
+
+                a {
+                    color: @white;
+                    display: block;
+                    font-weight: 700;
+                    letter-spacing: 0.125rem;
+                    padding: 1em;
+                    text-transform: uppercase;
+                }
+            }
         }
     }
 }

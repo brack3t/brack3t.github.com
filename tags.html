@@ -12,8 +12,9 @@
     <![endif]-->
 
     <!-- Le styles -->
-    <link href="http://fonts.googleapis.com/css?family=Alegreya:400,900,900italic,400italic,700,700italic" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
     <link href="./brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/github.css" rel="stylesheet">
     <link href="./brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
   </head>
 
@@ -30,31 +31,32 @@
 
         <div class="row-fluid">
             <div class="span4" id="main" role="main">
-                <div class="page-header"><h1>brack3t <small>[tgs]</small></h1></div>
+                <div class="page-header"><h1>Tags</h1></div>
                 
-<ul>
-
-    <li><a href="./tag/python.html">python</li>
-
-    <li><a href="./tag/django.html">django</li>
-
-    <li><a href="./tag/project.html">project</li>
-
-    <li><a href="./tag/html.html">html</li>
-
-    <li><a href="./tag/semantics.html">semantics</li>
-
-    <li><a href="./tag/css.html">css</li>
-
-</ul>
+    <ul>
+    
+        <li><a href="./tag/python.html">python</a></li>
+    
+        <li><a href="./tag/django.html">django</a></li>
+    
+        <li><a href="./tag/project.html">project</a></li>
+    
+        <li><a href="./tag/html.html">html</a></li>
+    
+        <li><a href="./tag/semantics.html">semantics</a></li>
+    
+        <li><a href="./tag/css.html">css</a></li>
+    
+    </ul>
 
             </div>
             <aside class="span2" id="sidebar" role="complementary">
-                <h2>Our menu</h2>
                 <nav>
-                    <ul>
+                    <ul class="unstyled">
                         
                         
+                            
+                            <li><a href="./pages/about-us.html">About</a></li>
                             
                         
                         <li><a href="./pages/projects.html">Projects</a></li>
@@ -73,10 +75,12 @@
     <script src="./brack3t-theme/assets/jquery-1.7.1.min.js"></script>
     <script src="./brack3t-theme/assets/jquery.slabtext.min.js"></script>
     <script src="./brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src="./brack3t-theme/assets/highlight.pack.js"></script>
     <script>
         $(function() {
             $(".slabtext").slabText();
             $(".fittext").fitText(0.8);
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
         });
     </script>
   </body>

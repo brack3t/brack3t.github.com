@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+<article>
+    <header>
+        <h1><span class="slabtext">{{ page.title }}</span></h1>
+    </header>
+
+    {{ page.content }}
+</article>
+{% endblock %}

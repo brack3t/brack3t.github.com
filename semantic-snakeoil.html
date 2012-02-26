@@ -12,8 +12,9 @@
     <![endif]-->
 
     <!-- Le styles -->
-    <link href="http://fonts.googleapis.com/css?family=Alegreya:400,900,900italic,400italic,700,700italic" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
     <link href="./brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/github.css" rel="stylesheet">
     <link href="./brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
   </head>
 
@@ -34,7 +35,12 @@
                 
     <article>
         <header>
-            <h1>Semantic Snakeoil</h1>
+            <h1><span class="slabtext">Semantic Snakeoil</span></h1>
+            <h6><span class="permalink">Published: <a  href="./semantic-snakeoil.html">10-03-2011</a></span>
+<span class="author">by <strong>Kenneth</strong></span>
+<span class="tags">tags: <a href="./tag/semantics.html">semantics</a> <a href="./tag/html.html">html</a> <a href="./tag/css.html">css</a> </span>
+
+</h6>
         </header>
         <p>For years now, we've been told that we should always use semantic class names and IDs in our HTML.
 And, in general, this is a good practice, I don't want anyone to think it's not. You <em>should</em> make
@@ -54,20 +60,16 @@ and CSS frameworks in the name of &quot;proper&quot; web development practices.<
 There are no additional restrictions on the tokens authors can use in the class attribute, but authors are encouraged to use values that describe the nature of the content, rather than values that describe the desired presentation of the content. <strong>It is also valid to use values that describe the element.</strong></blockquote>
 <p>Have comments? Continue the discussion on <a class="reference external" href="http://news.ycombinator.com/item?id=3072260">Hacker News</a>.</p>
 
-        <h6>Permalink: <a  href="./semantic-snakeoil.html">2011-10-03 21:31:00</a>
-by <a class="url fn" href="./author/Kenneth.html">Kenneth</a>
-tags: <a href="./tag/semantics.html">semantics</a> <a href="./tag/html.html">html</a> <a href="./tag/css.html">css</a> 
-
-</h6>
     </article>
 
             </div>
             <aside class="span2" id="sidebar" role="complementary">
-                <h2>Our menu</h2>
                 <nav>
-                    <ul>
+                    <ul class="unstyled">
                         
                         
+                            
+                            <li><a href="./pages/about-us.html">About</a></li>
                             
                         
                         <li><a href="./pages/projects.html">Projects</a></li>
@@ -86,10 +88,12 @@ tags: <a href="./tag/semantics.html">semantics</a> <a href="./tag/html.html">htm
     <script src="./brack3t-theme/assets/jquery-1.7.1.min.js"></script>
     <script src="./brack3t-theme/assets/jquery.slabtext.min.js"></script>
     <script src="./brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src="./brack3t-theme/assets/highlight.pack.js"></script>
     <script>
         $(function() {
             $(".slabtext").slabText();
             $(".fittext").fitText(0.8);
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
         });
     </script>
   </body>

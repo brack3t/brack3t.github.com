@@ -4,14 +4,15 @@
 
 // Inline and block code styles
 code,
-pre {
+pre,
+tt{
   padding: 0 3px 2px;
   #font > #family > .monospace;
   font-size: @baseFontSize - 1;
   color: @grayDark;
   .border-radius(3px);
 }
-code {
+code, tt {
   padding: 3px 4px;
   color: #d14;
   background-color: #f7f7f9;
@@ -37,7 +38,7 @@ pre {
   }
 
   // Account for some code outputs that place code tags in pre tags
-  code {
+  code, tt {
     padding: 0;
     background-color: transparent;
   }
