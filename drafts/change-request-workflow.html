@@ -58,6 +58,8 @@
         <p>Recently, at work, we had need of a workflow where users of a certain access level could submit changes to existing records, but the changes had to be approved by a higher-leveled user before they went live. That
 editor-level user could either approve or deny the changes. We didn't make it to where they could approve <em>part</em> of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought
 you might be interested in it, so we wanted to show what we did.</p>
+<div class="section" id="models">
+<h2>Models</h2>
 <p>First, let's start with the models.</p>
 <div class="highlight"><pre><span class="x">class POIAbstract(LumberjackModel, models.Model):</span>
 <span class="x">    category = models.ForeignKey(Category, related_name=&quot;%(class)s_points&quot;)</span>
@@ -130,6 +132,7 @@ you might be interested in it, so we wanted to show what we did.</p>
 <tt class="docutils literal">abstract = True</tt> setting. The change model, though, adds a few fields.</p>
 <p>First we point to the record we're changing. Then we hold on to the user that submitted the changes, and the time of the request. We also want to have a record of who approved/denied it and when. And, of course, we
 need to know what the status of the change is. That'll let us change our minds later on.</p>
+</div>
 <div class="section" id="forms">
 <h2>Forms</h2>
 <p>We usually end up building forms after we build models (more on this when we finish <a class="reference external" href="http://gettingstartedwithdjango.com">GSWD</a>), so let's look at them next.</p>

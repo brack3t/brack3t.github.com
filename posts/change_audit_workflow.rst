@@ -12,6 +12,9 @@ Recently, at work, we had need of a workflow where users of a certain access lev
 editor-level user could either approve or deny the changes. We didn't make it to where they could approve *part* of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought 
 you might be interested in it, so we wanted to show what we did.
 
+Models
+======
+
 First, let's start with the models.
 
 .. code-block:: django
