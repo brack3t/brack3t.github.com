@@ -1,5 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2011-06-13T18:50:00Z</updated><entry><title>Djangopeople.me</title><link href="http://brack3t.com/djangopeopleme.html" rel="alternate"></link><updated>2011-06-13T18:50:00Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2011-06-13:/djangopeopleme.html/</id><summary type="html">&lt;div class="section" id="what-is-it"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-26T11:01:00Z</updated><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Recently, at work, we had need of a workflow where users of a certain access level could submit changes to existing records, but the changes had to be approved by a higher-leveled user before they went live. That
+editor-level user could either approve or deny the changes. We didn't make it to where they could approve &lt;em&gt;part&lt;/em&gt; of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought
+you might be interested in it, so we wanted to show what we did.&lt;/p&gt;
+&lt;div class="section" id="models"&gt;
+&lt;h2&gt;Models&lt;/h2&gt;
+&lt;p&gt;First, let's start with the models.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIAbstract(LumberjackModel, models.Model):&lt;/span&gt;
+&lt;span class="x"&gt;    category = models.ForeignKey(Category, related_name=&amp;quot;%(class)s_points&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    name = models.CharField(max_length=255)&lt;/span&gt;
+&lt;span class="x"&gt;    address = models.CharField(max_length=255)&lt;/span&gt;
+&lt;span class="x"&gt;    address2 = models.CharField(max_length=255, blank=True)&lt;/span&gt;
+&lt;span class="x"&gt;    city = models.CharField(max_length=100)&lt;/span&gt;
+&lt;span class="x"&gt;    state = USPostalCodeField()&lt;/span&gt;
+&lt;span class="x"&gt;    zip_code = models.CharField(max_length=10)&lt;/span&gt;
+&lt;span class="x"&gt;    phone = PhoneNumberField(blank=True, default=&amp;quot;&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    url = models.URLField(blank=True, default=&amp;quot;&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    point = models.PointField(blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    objects = models.GeoManager()&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __unicode__(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return self.name&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def coords(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Return tuple of lat,lng&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        if self.point:&lt;/span&gt;
+&lt;span class="x"&gt;            return (self.point.get_coords()[1], self.point.get_coords()[0])&lt;/span&gt;
+&lt;span class="x"&gt;        return (None, None)&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def full_address(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Return a string of the full address&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        addresses = [self.address, self.address2, self.city, self.state,&lt;/span&gt;
+&lt;span class="x"&gt;            self.zip_code, &amp;quot;USA&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        return &amp;quot;, &amp;quot;.join(filter(lambda x: len(x) &amp;gt; 0, addresses))&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POI(POIAbstract):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Points of Interest model.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    pass&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POIChange(POIAbstract):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Holds proposed changes to POIs&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    STATUS_CHOICES = (&lt;/span&gt;
+&lt;span class="x"&gt;        (0, &amp;quot;Pending&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;        (1, &amp;quot;Denied&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;        (2, &amp;quot;Approved&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    )&lt;/span&gt;
+
+&lt;span class="x"&gt;    poi = models.ForeignKey(POI, related_name=&amp;quot;changes&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    user = models.ForeignKey(User, related_name=&amp;quot;poi_changes&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    submitted_on = models.DateField(auto_now_add=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    approved_by = models.ForeignKey(User, related_name=&amp;quot;poi_approvals&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;        blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    approved_on = models.DateField(blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES,&lt;/span&gt;
+&lt;span class="x"&gt;        default=0, editable=False)&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        ordering = [&amp;quot;status&amp;quot;, &amp;quot;-submitted_on&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, there's not really anything too interesting about the models. We have an abstract model that we inherit both of our other models from. The approved record model is just the abstract model without it's
+&lt;tt class="docutils literal"&gt;abstract = True&lt;/tt&gt; setting. The change model, though, adds a few fields.&lt;/p&gt;
+&lt;p&gt;First we point to the record we're changing. Then we hold on to the user that submitted the changes, and the time of the request. We also want to have a record of who approved/denied it and when. And, of course, we
+need to know what the status of the change is. That'll let us change our minds later on.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="forms"&gt;
+&lt;h2&gt;Forms&lt;/h2&gt;
+&lt;p&gt;We usually end up building forms after we build models (more on this when we finish &lt;a class="reference external" href="http://gettingstartedwithdjango.com"&gt;GSWD&lt;/a&gt;), so let's look at them next.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIForm(forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    latitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+&lt;span class="x"&gt;    longitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = POI&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POIChangeForm(forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    latitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+&lt;span class="x"&gt;    longitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;        widgets = {&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;poi&amp;quot;: forms.HiddenInput(),&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;user&amp;quot;: forms.HiddenInput()&lt;/span&gt;
+&lt;span class="x"&gt;        }&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I've left out some of the boilerplate and &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; bits from &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; (we haven't upgraded to &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt; yet) but you get the general idea. Honestly, we could have made the second form inherit from
+the first and saved a bit of typing/space, but I guess we missed that. Both forms, ultimately, show the same thing. The latter form, though, holds onto a few extra fields that we need and that we'll set in the view.&lt;/p&gt;
+&lt;p&gt;Speaking of views, let's check them out.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="views"&gt;
+&lt;h2&gt;Views&lt;/h2&gt;
+&lt;p&gt;We're not going to look at the view that creates the original POI. It's just a standard
+&lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; that specifies our &lt;tt class="docutils literal"&gt;POIForm&lt;/tt&gt; as the &lt;tt class="docutils literal"&gt;form_class&lt;/tt&gt;. We have a couple of handy
+mixins on the views that let us control permissions and redirects, but we'll talk about them in
+another blog post.&lt;/p&gt;
+&lt;p&gt;The view we &lt;em&gt;do&lt;/em&gt; want to look at is our &lt;tt class="docutils literal"&gt;POIUpdateView&lt;/tt&gt; which is the one that let's users submit
+changes for a particular POI. Now, this view is the one that's linked to for each record on the
+list page; we never link to a view where a user can directly update a POI, not even for
+editors/superusers. So, here's our &lt;tt class="docutils literal"&gt;POIUpdateView&lt;/tt&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;span class="label label-info"&gt;note&lt;/span&gt; We use a few mixins below that aren't part of the standard Django library: &lt;tt class="docutils literal"&gt;LoginRequiredMixin&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;PermissionRequiredMixin&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;SetHeadlineMixin&lt;/tt&gt;.&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View allows users to propose changes to current POIs.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = POIChangeForm&lt;/span&gt;
+&lt;span class="x"&gt;    headline = &amp;quot;Edit point of interest&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = &amp;quot;points.change_poi&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = &amp;quot;cms_points_list&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;cms/points/poi_form_edit.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_initial(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Do you believe in magic, in a young devs heart?&lt;/span&gt;
+&lt;span class="x"&gt;        How the code can free &amp;#39;em whenever it starts,&lt;/span&gt;
+&lt;span class="x"&gt;        and it&amp;#39;s magic, if the code is groovy.&lt;/span&gt;
+
+&lt;span class="x"&gt;        Use POI information for initial data in POIChangeForm.&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = POI.objects.get(pk=self.kwargs[&amp;quot;pk&amp;quot;])&lt;/span&gt;
+&lt;span class="x"&gt;        initial = poi.__dict__.copy()&lt;/span&gt;
+&lt;span class="x"&gt;        del initial[&amp;quot;_state&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        initial.update({&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;category&amp;quot;: poi.category,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;latitude&amp;quot;: poi.point.get_coords()[1],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;longitude&amp;quot;: poi.point.get_coords()[0],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;user&amp;quot;: self.request.user,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;poi&amp;quot;: poi&lt;/span&gt;
+&lt;span class="x"&gt;        })&lt;/span&gt;
+&lt;span class="x"&gt;        return initial&lt;/span&gt;
+
+&lt;span class="x"&gt;    def post(self, request, pk, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        response = super(POIUpdateView, self).post(request, pk, *args, **kwargs)&lt;/span&gt;
+
+&lt;span class="x"&gt;        url = settings.CMS_URL + reverse(&amp;quot;cms_points_change_detail&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            kwargs={&amp;quot;pk&amp;quot;: self.object.pk})&lt;/span&gt;
+&lt;span class="x"&gt;        message = render_to_string(&amp;quot;cms/points/email/admin_email.html&amp;quot;, {&amp;quot;user&amp;quot;:&lt;/span&gt;
+&lt;span class="x"&gt;            self.object.user.get_full_name(), &amp;quot;url&amp;quot;: url})&lt;/span&gt;
+&lt;span class="x"&gt;        mail_admins(&amp;quot;POI Change Request&amp;quot;, message)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return response&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I think how this view works is pretty cool. It's a fairly standard &lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; that points to
+our &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt; model. We don't just start with a blank &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;, though. By overriding
+&lt;tt class="docutils literal"&gt;get_initial&lt;/tt&gt; to load the &lt;tt class="docutils literal"&gt;POI&lt;/tt&gt; with the &lt;tt class="docutils literal"&gt;PK&lt;/tt&gt; that comes through in the URL, we can set the
+beginning data of the record. We fetch the instance, update our initial data with its values, and
+then pass it on through to the form.&lt;/p&gt;
+&lt;p&gt;Once the form is valid, a method I don't show above, called &lt;tt class="docutils literal"&gt;form_valid&lt;/tt&gt;, is fired by Django as part of its form-based generic view workflow and then we log the change in our logger, send a message to the user
+through Django's &lt;tt class="docutils literal"&gt;messages&lt;/tt&gt; app, and then our &lt;tt class="docutils literal"&gt;post&lt;/tt&gt; method gets called.  Learning the workflow order of &lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;UpdateView&lt;/tt&gt; (and, ultimately, &lt;tt class="docutils literal"&gt;FormView&lt;/tt&gt;) will save you a huge amount of time when
+you start customizing these things.  In our &lt;tt class="docutils literal"&gt;post&lt;/tt&gt; method, we render out an email to the admins and then return our response, which, thanks to our &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt; will redirect the user to the route
+named in &lt;tt class="docutils literal"&gt;success_list_url&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;Now, all we've really done is create a new record. It still has to be approved. We do that in our
+next view, &lt;tt class="docutils literal"&gt;POIChangeApprovalView&lt;/tt&gt;, which the editor/superuser gets to through another list
+view. They can also reach it by clicking the link provided to them in the email.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIChangeApprovalView(LoginRequiredMixin, SuperuserRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    DetailView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;cms/points/poi_change_detail.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def post(self, request, pk):&lt;/span&gt;
+&lt;span class="x"&gt;        approval = request.POST.get(&amp;quot;approval&amp;quot;, None)&lt;/span&gt;
+&lt;span class="x"&gt;        if approval:&lt;/span&gt;
+&lt;span class="x"&gt;            if approval == &amp;quot;approve&amp;quot;:&lt;/span&gt;
+&lt;span class="x"&gt;                self._approved()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                self._denied()&lt;/span&gt;
+&lt;span class="x"&gt;            return HttpResponseRedirect(reverse(&amp;quot;cms_points_change_list&amp;quot;))&lt;/span&gt;
+
+&lt;span class="x"&gt;        return HttpResponseForbidden()&lt;/span&gt;
+
+&lt;span class="x"&gt;    def _approved(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        It&amp;#39;s approved!&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = self.get_object()&lt;/span&gt;
+&lt;span class="x"&gt;        data = poi.__dict__.copy()&lt;/span&gt;
+&lt;span class="x"&gt;        del data[&amp;quot;_state&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        data.update({&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;category&amp;quot;: poi.category.pk,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;latitude&amp;quot;: poi.coords[0],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;longitude&amp;quot;: poi.coords[1],&lt;/span&gt;
+&lt;span class="x"&gt;        })&lt;/span&gt;
+&lt;span class="x"&gt;        form = POIForm(data, instance=poi.poi)&lt;/span&gt;
+&lt;span class="x"&gt;        if form.is_valid():&lt;/span&gt;
+&lt;span class="x"&gt;            form.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;            poi.status = 2&lt;/span&gt;
+&lt;span class="x"&gt;            poi.approved_by = self.request.user&lt;/span&gt;
+&lt;span class="x"&gt;            poi.approved_on = date.today()&lt;/span&gt;
+&lt;span class="x"&gt;            poi.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;            messages.success(self.request, &amp;quot;Point of interest updated.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;            if poi.user.email:&lt;/span&gt;
+&lt;span class="x"&gt;                message = render_to_string(&amp;quot;cms/points/email/approved.html&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                    {&amp;quot;poi_name&amp;quot;: poi.name})&lt;/span&gt;
+&lt;span class="x"&gt;                send_mail(&amp;quot;OUR CLIENT - Change Request Approved&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                    message, settings.EMAIL_HOST_USER, [poi.user.email])&lt;/span&gt;
+
+&lt;span class="x"&gt;    def _denied(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        No way Jose&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = self.get_object()&lt;/span&gt;
+&lt;span class="x"&gt;        poi.status = 1&lt;/span&gt;
+&lt;span class="x"&gt;        poi.approved_by = self.request.user&lt;/span&gt;
+&lt;span class="x"&gt;        poi.approved_on = date.today()&lt;/span&gt;
+&lt;span class="x"&gt;        poi.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;        messages.success(self.request,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;Point of interest &amp;#39;%s&amp;#39; has not been updated.&amp;quot; % poi.poi.name)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if poi.user.email:&lt;/span&gt;
+&lt;span class="x"&gt;            message = render_to_string(&amp;quot;cms/points/email/denied.html&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                {&amp;quot;poi_name&amp;quot;: poi.name})&lt;/span&gt;
+&lt;span class="x"&gt;            send_mail(&amp;quot;OUR CLIENT - Change Request Denied&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                message, settings.EMAIL_HOST_USER, [poi.user.email])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This view is really straightfoward. The editor clicks one of two buttons, both of which point to
+this view. One contains a &lt;tt class="docutils literal"&gt;POST&lt;/tt&gt; variable indicating approval, the other indicating that the
+change has been denied. Then, based on the value, we peform the same action on the &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;If the change was denied, we just set the status on the change to our denied flag, set the date
+and user, and then save it.&lt;/p&gt;
+&lt;p&gt;If it was approved, we create an instance of the &lt;tt class="docutils literal"&gt;POIForm&lt;/tt&gt; with the changed &lt;tt class="docutils literal"&gt;POI&lt;/tt&gt; as the
+edited instance and our &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;'s &lt;tt class="docutils literal"&gt;__dict__&lt;/tt&gt; as the new data. Since they're copies of each
+other, aside from the changes in the change model, of course, only the changed data really gets
+updated. We make sure the form is still valid (some &lt;a class="reference external" href="http://geodjango.org"&gt;GeoDjango&lt;/a&gt; stuff I left out of the form above)
+and then save the updated instance. We also update the &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt; so it holds the new status,
+the approving user and date.&lt;/p&gt;
+&lt;p&gt;Regardless of the action taken, we send off an email to the user that submitted the change,
+letting him or her know what happened.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="summary"&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;This has, so far, been a great workflow for our users. They're able to trust that the data going
+out is verified and safe, but if anything gets out of date, we can change it ourselves or let the community of users tell us about the new data.&lt;/p&gt;
+&lt;p&gt;There is a lot of stuff I didn't cover, what the &lt;tt class="docutils literal"&gt;Point&lt;/tt&gt; field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other
+stuff. If you have questions/comments, hit us up on &lt;a class="reference external" href="http://twitter.com/brack3t"&gt;Twitter&lt;/a&gt;. Also, thanks to &lt;a class="reference external" href="http://pydanny.github.com"&gt;Daniel Greenfeld&lt;/a&gt; for a couple of edits.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="workflow"></category><category term="python"></category></entry><entry><title>Djangopeople.me</title><link href="http://brack3t.com/djangopeopleme.html" rel="alternate"></link><updated>2011-06-13T18:50:00Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2011-06-13:/djangopeopleme.html/</id><summary type="html">&lt;div class="section" id="what-is-it"&gt;
 &lt;h2&gt;What is it?&lt;/h2&gt;
 &lt;p&gt;At it's core, &lt;a class="reference external" href="http://djangopeople.me"&gt;djangopeople.me&lt;/a&gt; is a place for &lt;a class="reference external" href="https://www.djangoproject.com/"&gt;Django&lt;/a&gt; developers to register and be found based on their geographic location, whether it's by recruiters or a lonely Django developer like ourselves trying to find others close to him/her. That's the general idea behind the site.&lt;/p&gt;
 &lt;p&gt;We wanted to make it clean, simple and fast. For the maps we ended up using &lt;a class="reference external" href="http://leaflet.cloudmade.com/"&gt;Leaflet's&lt;/a&gt; open-source Javascript library. We initially started with Google Maps, but the rate limiting was too restrictive on the geocoding API for our needs and frankly, loading maps seemed very slow. So, with the project being free-to-use (and us being cheap), we looked for something else.&lt;/p&gt;

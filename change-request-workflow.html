@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>brack3t</title>
+    <meta name="description" content="">
+    <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/github.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <script>
+    var _gaq = _gaq || [];
+    _gaq.push(["_setAccount", "UA-4642386-4"]);
+    _gaq.push(["_trackPageview"]);
+
+    (function() {
+        var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+        ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row">
+            <div class="span6">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                </header>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span6" id="main" role="main">
+                
+                
+    <article>
+        <header>
+            <h1><span class="slabtext">Change Request Workflow</span></h1>
+            <h6><span class="permalink">Published: <a  href="./change-request-workflow.html">02-26-2012</a></span>
+<span class="author">by <strong>Kenneth</strong></span>
+<span class="tags">tags: <a href="./tag/django.html">django</a> <a href="./tag/workflow.html">workflow</a> <a href="./tag/python.html">python</a> </span>
+
+</h6>
+        </header>
+        <p>Recently, at work, we had need of a workflow where users of a certain access level could submit changes to existing records, but the changes had to be approved by a higher-leveled user before they went live. That
+editor-level user could either approve or deny the changes. We didn't make it to where they could approve <em>part</em> of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought
+you might be interested in it, so we wanted to show what we did.</p>
+<div class="section" id="models">
+<h2>Models</h2>
+<p>First, let's start with the models.</p>
+<div class="highlight"><pre><span class="x">class POIAbstract(LumberjackModel, models.Model):</span>
+<span class="x">    category = models.ForeignKey(Category, related_name=&quot;%(class)s_points&quot;)</span>
+<span class="x">    name = models.CharField(max_length=255)</span>
+<span class="x">    address = models.CharField(max_length=255)</span>
+<span class="x">    address2 = models.CharField(max_length=255, blank=True)</span>
+<span class="x">    city = models.CharField(max_length=100)</span>
+<span class="x">    state = USPostalCodeField()</span>
+<span class="x">    zip_code = models.CharField(max_length=10)</span>
+<span class="x">    phone = PhoneNumberField(blank=True, default=&quot;&quot;)</span>
+<span class="x">    url = models.URLField(blank=True, default=&quot;&quot;)</span>
+<span class="x">    point = models.PointField(blank=True, null=True, editable=False)</span>
+<span class="x">    objects = models.GeoManager()</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        abstract = True</span>
+
+<span class="x">    def __unicode__(self):</span>
+<span class="x">        return self.name</span>
+
+<span class="x">    @property</span>
+<span class="x">    def coords(self):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        Return tuple of lat,lng</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        if self.point:</span>
+<span class="x">            return (self.point.get_coords()[1], self.point.get_coords()[0])</span>
+<span class="x">        return (None, None)</span>
+
+<span class="x">    @property</span>
+<span class="x">    def full_address(self):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        Return a string of the full address</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        addresses = [self.address, self.address2, self.city, self.state,</span>
+<span class="x">            self.zip_code, &quot;USA&quot;]</span>
+<span class="x">        return &quot;, &quot;.join(filter(lambda x: len(x) &gt; 0, addresses))</span>
+
+
+<span class="x">class POI(POIAbstract):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    Points of Interest model.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    pass</span>
+
+
+<span class="x">class POIChange(POIAbstract):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    Holds proposed changes to POIs</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    STATUS_CHOICES = (</span>
+<span class="x">        (0, &quot;Pending&quot;),</span>
+<span class="x">        (1, &quot;Denied&quot;),</span>
+<span class="x">        (2, &quot;Approved&quot;)</span>
+<span class="x">    )</span>
+
+<span class="x">    poi = models.ForeignKey(POI, related_name=&quot;changes&quot;)</span>
+<span class="x">    user = models.ForeignKey(User, related_name=&quot;poi_changes&quot;)</span>
+<span class="x">    submitted_on = models.DateField(auto_now_add=True, editable=False)</span>
+<span class="x">    approved_by = models.ForeignKey(User, related_name=&quot;poi_approvals&quot;,</span>
+<span class="x">        blank=True, null=True, editable=False)</span>
+<span class="x">    approved_on = models.DateField(blank=True, null=True, editable=False)</span>
+<span class="x">    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES,</span>
+<span class="x">        default=0, editable=False)</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        ordering = [&quot;status&quot;, &quot;-submitted_on&quot;]</span>
+</pre></div>
+<p>As you can see, there's not really anything too interesting about the models. We have an abstract model that we inherit both of our other models from. The approved record model is just the abstract model without it's
+<tt class="docutils literal">abstract = True</tt> setting. The change model, though, adds a few fields.</p>
+<p>First we point to the record we're changing. Then we hold on to the user that submitted the changes, and the time of the request. We also want to have a record of who approved/denied it and when. And, of course, we
+need to know what the status of the change is. That'll let us change our minds later on.</p>
+</div>
+<div class="section" id="forms">
+<h2>Forms</h2>
+<p>We usually end up building forms after we build models (more on this when we finish <a class="reference external" href="http://gettingstartedwithdjango.com">GSWD</a>), so let's look at them next.</p>
+<div class="highlight"><pre><span class="x">class POIForm(forms.ModelForm):</span>
+<span class="x">    latitude = forms.FloatField(required=False,</span>
+<span class="x">        widget=forms.HiddenInput())</span>
+<span class="x">    longitude = forms.FloatField(required=False,</span>
+<span class="x">        widget=forms.HiddenInput())</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        model = POI</span>
+
+
+<span class="x">class POIChangeForm(forms.ModelForm):</span>
+<span class="x">    latitude = forms.FloatField(required=False,</span>
+<span class="x">        widget=forms.HiddenInput())</span>
+<span class="x">    longitude = forms.FloatField(required=False,</span>
+<span class="x">        widget=forms.HiddenInput())</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        model = POIChange</span>
+<span class="x">        widgets = {</span>
+<span class="x">            &quot;poi&quot;: forms.HiddenInput(),</span>
+<span class="x">            &quot;user&quot;: forms.HiddenInput()</span>
+<span class="x">        }</span>
+</pre></div>
+<p>I've left out some of the boilerplate and <tt class="docutils literal">Layout</tt> bits from <a class="reference external" href="https://github.com/pydanny/django-uni-form">django-uni-form</a> (we haven't upgraded to <a class="reference external" href="https://github.com/maraujop/django-crispy-forms">django-crispy-forms</a> yet) but you get the general idea. Honestly, we could have made the second form inherit from
+the first and saved a bit of typing/space, but I guess we missed that. Both forms, ultimately, show the same thing. The latter form, though, holds onto a few extra fields that we need and that we'll set in the view.</p>
+<p>Speaking of views, let's check them out.</p>
+</div>
+<div class="section" id="views">
+<h2>Views</h2>
+<p>We're not going to look at the view that creates the original POI. It's just a standard
+<tt class="docutils literal">CreateView</tt> that specifies our <tt class="docutils literal">POIForm</tt> as the <tt class="docutils literal">form_class</tt>. We have a couple of handy
+mixins on the views that let us control permissions and redirects, but we'll talk about them in
+another blog post.</p>
+<p>The view we <em>do</em> want to look at is our <tt class="docutils literal">POIUpdateView</tt> which is the one that let's users submit
+changes for a particular POI. Now, this view is the one that's linked to for each record on the
+list page; we never link to a view where a user can directly update a POI, not even for
+editors/superusers. So, here's our <tt class="docutils literal">POIUpdateView</tt>:</p>
+<blockquote>
+<span class="label label-info">note</span> We use a few mixins below that aren't part of the standard Django library: <tt class="docutils literal">LoginRequiredMixin</tt>, <tt class="docutils literal">PermissionRequiredMixin</tt>, <tt class="docutils literal">SuccessURLRedirectListMixin</tt>, and <tt class="docutils literal">SetHeadlineMixin</tt>.</blockquote>
+<div class="highlight"><pre><span class="x">class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,</span>
+<span class="x">    SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    View allows users to propose changes to current POIs.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+
+<span class="x">    form_class = POIChangeForm</span>
+<span class="x">    headline = &quot;Edit point of interest&quot;</span>
+<span class="x">    model = POIChange</span>
+<span class="x">    permission_required = &quot;points.change_poi&quot;</span>
+<span class="x">    success_list_url = &quot;cms_points_list&quot;</span>
+<span class="x">    template_name = &quot;cms/points/poi_form_edit.html&quot;</span>
+
+<span class="x">    def get_initial(self):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        Do you believe in magic, in a young devs heart?</span>
+<span class="x">        How the code can free &#39;em whenever it starts,</span>
+<span class="x">        and it&#39;s magic, if the code is groovy.</span>
+
+<span class="x">        Use POI information for initial data in POIChangeForm.</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        poi = POI.objects.get(pk=self.kwargs[&quot;pk&quot;])</span>
+<span class="x">        initial = poi.__dict__.copy()</span>
+<span class="x">        del initial[&quot;_state&quot;]</span>
+<span class="x">        initial.update({</span>
+<span class="x">            &quot;category&quot;: poi.category,</span>
+<span class="x">            &quot;latitude&quot;: poi.point.get_coords()[1],</span>
+<span class="x">            &quot;longitude&quot;: poi.point.get_coords()[0],</span>
+<span class="x">            &quot;user&quot;: self.request.user,</span>
+<span class="x">            &quot;poi&quot;: poi</span>
+<span class="x">        })</span>
+<span class="x">        return initial</span>
+
+<span class="x">    def post(self, request, pk, *args, **kwargs):</span>
+<span class="x">        response = super(POIUpdateView, self).post(request, pk, *args, **kwargs)</span>
+
+<span class="x">        url = settings.CMS_URL + reverse(&quot;cms_points_change_detail&quot;,</span>
+<span class="x">            kwargs={&quot;pk&quot;: self.object.pk})</span>
+<span class="x">        message = render_to_string(&quot;cms/points/email/admin_email.html&quot;, {&quot;user&quot;:</span>
+<span class="x">            self.object.user.get_full_name(), &quot;url&quot;: url})</span>
+<span class="x">        mail_admins(&quot;POI Change Request&quot;, message)</span>
+
+<span class="x">        return response</span>
+</pre></div>
+<p>I think how this view works is pretty cool. It's a fairly standard <tt class="docutils literal">CreateView</tt> that points to
+our <tt class="docutils literal">POIChange</tt> model. We don't just start with a blank <tt class="docutils literal">POIChange</tt>, though. By overriding
+<tt class="docutils literal">get_initial</tt> to load the <tt class="docutils literal">POI</tt> with the <tt class="docutils literal">PK</tt> that comes through in the URL, we can set the
+beginning data of the record. We fetch the instance, update our initial data with its values, and
+then pass it on through to the form.</p>
+<p>Once the form is valid, a method I don't show above, called <tt class="docutils literal">form_valid</tt>, is fired by Django as part of its form-based generic view workflow and then we log the change in our logger, send a message to the user
+through Django's <tt class="docutils literal">messages</tt> app, and then our <tt class="docutils literal">post</tt> method gets called.  Learning the workflow order of <tt class="docutils literal">CreateView</tt> and <tt class="docutils literal">UpdateView</tt> (and, ultimately, <tt class="docutils literal">FormView</tt>) will save you a huge amount of time when
+you start customizing these things.  In our <tt class="docutils literal">post</tt> method, we render out an email to the admins and then return our response, which, thanks to our <tt class="docutils literal">SuccessURLRedirectListMixin</tt> will redirect the user to the route
+named in <tt class="docutils literal">success_list_url</tt>.</p>
+<p>Now, all we've really done is create a new record. It still has to be approved. We do that in our
+next view, <tt class="docutils literal">POIChangeApprovalView</tt>, which the editor/superuser gets to through another list
+view. They can also reach it by clicking the link provided to them in the email.</p>
+<div class="highlight"><pre><span class="x">class POIChangeApprovalView(LoginRequiredMixin, SuperuserRequiredMixin,</span>
+<span class="x">    DetailView):</span>
+
+<span class="x">    model = POIChange</span>
+<span class="x">    template_name = &quot;cms/points/poi_change_detail.html&quot;</span>
+
+<span class="x">    def post(self, request, pk):</span>
+<span class="x">        approval = request.POST.get(&quot;approval&quot;, None)</span>
+<span class="x">        if approval:</span>
+<span class="x">            if approval == &quot;approve&quot;:</span>
+<span class="x">                self._approved()</span>
+<span class="x">            else:</span>
+<span class="x">                self._denied()</span>
+<span class="x">            return HttpResponseRedirect(reverse(&quot;cms_points_change_list&quot;))</span>
+
+<span class="x">        return HttpResponseForbidden()</span>
+
+<span class="x">    def _approved(self):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        It&#39;s approved!</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        poi = self.get_object()</span>
+<span class="x">        data = poi.__dict__.copy()</span>
+<span class="x">        del data[&quot;_state&quot;]</span>
+<span class="x">        data.update({</span>
+<span class="x">            &quot;category&quot;: poi.category.pk,</span>
+<span class="x">            &quot;latitude&quot;: poi.coords[0],</span>
+<span class="x">            &quot;longitude&quot;: poi.coords[1],</span>
+<span class="x">        })</span>
+<span class="x">        form = POIForm(data, instance=poi.poi)</span>
+<span class="x">        if form.is_valid():</span>
+<span class="x">            form.save()</span>
+
+<span class="x">            poi.status = 2</span>
+<span class="x">            poi.approved_by = self.request.user</span>
+<span class="x">            poi.approved_on = date.today()</span>
+<span class="x">            poi.save()</span>
+
+<span class="x">            messages.success(self.request, &quot;Point of interest updated.&quot;)</span>
+
+<span class="x">            if poi.user.email:</span>
+<span class="x">                message = render_to_string(&quot;cms/points/email/approved.html&quot;,</span>
+<span class="x">                    {&quot;poi_name&quot;: poi.name})</span>
+<span class="x">                send_mail(&quot;OUR CLIENT - Change Request Approved&quot;,</span>
+<span class="x">                    message, settings.EMAIL_HOST_USER, [poi.user.email])</span>
+
+<span class="x">    def _denied(self):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        No way Jose</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        poi = self.get_object()</span>
+<span class="x">        poi.status = 1</span>
+<span class="x">        poi.approved_by = self.request.user</span>
+<span class="x">        poi.approved_on = date.today()</span>
+<span class="x">        poi.save()</span>
+
+<span class="x">        messages.success(self.request,</span>
+<span class="x">            &quot;Point of interest &#39;%s&#39; has not been updated.&quot; % poi.poi.name)</span>
+
+<span class="x">        if poi.user.email:</span>
+<span class="x">            message = render_to_string(&quot;cms/points/email/denied.html&quot;,</span>
+<span class="x">                {&quot;poi_name&quot;: poi.name})</span>
+<span class="x">            send_mail(&quot;OUR CLIENT - Change Request Denied&quot;,</span>
+<span class="x">                message, settings.EMAIL_HOST_USER, [poi.user.email])</span>
+</pre></div>
+<p>This view is really straightfoward. The editor clicks one of two buttons, both of which point to
+this view. One contains a <tt class="docutils literal">POST</tt> variable indicating approval, the other indicating that the
+change has been denied. Then, based on the value, we peform the same action on the <tt class="docutils literal">POIChange</tt>.</p>
+<p>If the change was denied, we just set the status on the change to our denied flag, set the date
+and user, and then save it.</p>
+<p>If it was approved, we create an instance of the <tt class="docutils literal">POIForm</tt> with the changed <tt class="docutils literal">POI</tt> as the
+edited instance and our <tt class="docutils literal">POIChange</tt>'s <tt class="docutils literal">__dict__</tt> as the new data. Since they're copies of each
+other, aside from the changes in the change model, of course, only the changed data really gets
+updated. We make sure the form is still valid (some <a class="reference external" href="http://geodjango.org">GeoDjango</a> stuff I left out of the form above)
+and then save the updated instance. We also update the <tt class="docutils literal">POIChange</tt> so it holds the new status,
+the approving user and date.</p>
+<p>Regardless of the action taken, we send off an email to the user that submitted the change,
+letting him or her know what happened.</p>
+</div>
+<div class="section" id="summary">
+<h2>Summary</h2>
+<p>This has, so far, been a great workflow for our users. They're able to trust that the data going
+out is verified and safe, but if anything gets out of date, we can change it ourselves or let the community of users tell us about the new data.</p>
+<p>There is a lot of stuff I didn't cover, what the <tt class="docutils literal">Point</tt> field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other
+stuff. If you have questions/comments, hit us up on <a class="reference external" href="http://twitter.com/brack3t">Twitter</a>. Also, thanks to <a class="reference external" href="http://pydanny.github.com">Daniel Greenfeld</a> for a couple of edits.</p>
+</div>
+
+    </article>
+
+            </div>
+            <aside class="span2" id="sidebar" role="complementary">
+                <nav>
+                    <ul class="unstyled">
+                        
+                        
+                            
+                            <li><a href="./pages/about-us.html">About</a></li>
+                            
+                        
+                        <li><a href="./pages/projects.html">Projects</a></li>
+                        <li><a href="./archives.html">Archives</a></li>
+                        <li><a href="./tags.html">Tags</a></li>
+                    </ul>
+                </nav>
+            </aside>
+        </div>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href="./feeds/all.atom.xml">ATOM feed</a></p></footer>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./brack3t-theme/assets/jquery-1.7.1.min.js"></script>
+    <script src="./brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src="./brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src="./brack3t-theme/assets/highlight.pack.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText();
+            $(".fittext").fitText(0.8);
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
+        });
+    </script>
+  </body>
+</html>

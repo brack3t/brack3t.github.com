@@ -4,7 +4,6 @@ Change Request Workflow
 
 :author: Kenneth
 :date: 2012-02-26 11:01
-:status: draft
 :category: django
 :tags: django, workflow, python
 
