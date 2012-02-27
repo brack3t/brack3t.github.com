@@ -170,7 +170,9 @@ another blog post.</p>
 changes for a particular POI. Now, this view is the one that's linked to for each record on the
 list page; we never link to a view where a user can directly update a POI, not even for
 editors/superusers. So, here's our <tt class="docutils literal">POIUpdateView</tt>:</p>
-<div class="highlight"><pre><span class="x">class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,</span>
+<div class="highlight"><pre><span class="x"># pydanny note: Careful using non-core Mixins like SetHeadlineMixin without an explanation</span>
+<span class="x">#     You&#39;ll confuse a lot of people like me. ;)</span>
+<span class="x">class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,</span>
 <span class="x">    SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):</span>
 <span class="x">    &quot;&quot;&quot;</span>
 <span class="x">    View allows users to propose changes to current POIs.</span>
@@ -219,13 +221,10 @@ our <tt class="docutils literal">POIChange</tt> model. We don't just start with 
 <tt class="docutils literal">get_initial</tt> to load the <tt class="docutils literal">POI</tt> with the <tt class="docutils literal">PK</tt> that comes through in the URL, we can set the
 beginning data of the record. We fetch the instance, update our initial data with its values, and
 then pass it on through to the form.</p>
-<p>Once the form is valid, a method I don't show called <tt class="docutils literal">form_valid</tt>, we log the change in our
-logger, send a message to the user through Django's <tt class="docutils literal">messages</tt> app, and then our <tt class="docutils literal">post</tt> method
-gets called. Learning the workflow order of <tt class="docutils literal">CreateView</tt> and <tt class="docutils literal">UpdateView</tt> (and, ultimately,
-<tt class="docutils literal">FormView</tt>) will save you a huge amount of time when you start customizing these things. In our
-<tt class="docutils literal">post</tt> method, we render out an email to the admins and then return our response, which, thanks
-to our <tt class="docutils literal">SuccessURLRedirectListMixin</tt> will redirect the user to the route named in
-<tt class="docutils literal">success_list_url</tt>.</p>
+<p>Once the form is valid, a method I don't show above, called <tt class="docutils literal">form_valid</tt>, is fired by Django as part of its form-based generic view workflow and then we log the change in our logger, send a message to the user
+through Django's <tt class="docutils literal">messages</tt> app, and then our <tt class="docutils literal">post</tt> method gets called.  Learning the workflow order of <tt class="docutils literal">CreateView</tt> and <tt class="docutils literal">UpdateView</tt> (and, ultimately, <tt class="docutils literal">FormView</tt>) will save you a huge amount of time when
+you start customizing these things.  In our <tt class="docutils literal">post</tt> method, we render out an email to the admins and then return our response, which, thanks to our <tt class="docutils literal">SuccessURLRedirectListMixin</tt> will redirect the user to the route
+named in <tt class="docutils literal">success_list_url</tt>.</p>
 <p>Now, all we've really done is create a new record. It still has to be approved. We do that in our
 next view, <tt class="docutils literal">POIChangeApprovalView</tt>, which the editor/superuser gets to through another list
 view. They can also reach it by clicking the link provided to them in the email.</p>
@@ -245,7 +244,6 @@ view. They can also reach it by clicking the link provided to them in the email.
 <span class="x">            return HttpResponseRedirect(reverse(&quot;cms_points_change_list&quot;))</span>
 
 <span class="x">        return HttpResponseForbidden()</span>
-
 
 <span class="x">    def _approved(self):</span>
 <span class="x">        &quot;&quot;&quot;</span>
@@ -312,8 +310,9 @@ letting him or her know what happened.</p>
 <div class="section" id="summary">
 <h2>Summary</h2>
 <p>This has, so far, been a great workflow for our users. They're able to trust that the data going
-out is verified and safe, but if anything gets out of date, we can change it ourselves or let the
-community of users tell us about the new data.</p>
+out is verified and safe, but if anything gets out of date, we can change it ourselves or let the community of users tell us about the new data.</p>
+<p>There is a lot of stuff I didn't cover, what the <tt class="docutils literal">Point</tt> field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other
+stuff. If you have questions/comments, hit us up on <a class="reference external" href="http://twitter.com/brack3t">Twitter</a>. Also, thanks to <a class="reference external" href="http://pydanny.github.com">Daniel Greenfeld</a> for a couple of edits.</p>
 </div>
 
     </article>

@@ -191,13 +191,10 @@ our ``POIChange`` model. We don't just start with a blank ``POIChange``, though.
 beginning data of the record. We fetch the instance, update our initial data with its values, and 
 then pass it on through to the form.
 
-Once the form is valid, in a method I don't show called ``form_valid``, we log the change in our 
-logger, send a message to the user through Django's ``messages`` app, and then our ``post`` method 
-gets called. Learning the workflow order of ``CreateView`` and ``UpdateView`` (and, ultimately, 
-``FormView``) will save you a huge amount of time when you start customizing these things. In our 
-``post`` method, we render out an email to the admins and then return our response, which, thanks 
-to our ``SuccessURLRedirectListMixin`` will redirect the user to the route named in 
-``success_list_url``.
+Once the form is valid, a method I don't show above, called ``form_valid``, is fired by Django as part of its form-based generic view workflow and then we log the change in our logger, send a message to the user 
+through Django's ``messages`` app, and then our ``post`` method gets called.  Learning the workflow order of ``CreateView`` and ``UpdateView`` (and, ultimately, ``FormView``) will save you a huge amount of time when 
+you start customizing these things.  In our ``post`` method, we render out an email to the admins and then return our response, which, thanks to our ``SuccessURLRedirectListMixin`` will redirect the user to the route 
+named in ``success_list_url``.
 
 Now, all we've really done is create a new record. It still has to be approved. We do that in our 
 next view, ``POIChangeApprovalView``, which the editor/superuser gets to through another list 
@@ -291,10 +288,14 @@ Summary
 =======
 
 This has, so far, been a great workflow for our users. They're able to trust that the data going 
-out is verified and safe, but if anything gets out of date, we can change it ourselves or let the 
-community of users tell us about the new data. 
+out is verified and safe, but if anything gets out of date, we can change it ourselves or let the community of users tell us about the new data.
+
+There is a lot of stuff I didn't cover, what the ``Point`` field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other 
+stuff. If you have questions/comments, hit us up on Twitter_. Also, thanks to `Daniel Greenfeld`_ for a couple of edits.
 
 .. _GSWD: http://gettingstartedwithdjango.com
 .. _django-uni-form: https://github.com/pydanny/django-uni-form
 .. _django-crispy-forms: https://github.com/maraujop/django-crispy-forms
 .. _GeoDjango: http://geodjango.org
+.. _Twitter: http://twitter.com/brack3t
+.. _Daniel Greenfeld: http://pydanny.github.com
