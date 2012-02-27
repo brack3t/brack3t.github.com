@@ -131,12 +131,10 @@ aside {
 }
 
 #sidebar {
-    clear: both;
-    margin-left: 0;
-
     nav {
         background: @grayDark;
         overflow: hidden;
+        padding-top: 1em;
 
         ul {
             margin: 0 auto;
@@ -161,15 +159,21 @@ aside {
 }
 
 #logo {
-    padding-top: 3em;
+    padding: 3em 0 2em;
+    position: relative;
 
     h1 a {
-        background: transparent url("../../logo.png") center top no-repeat;
+        background: transparent url("../../logo.png") left top no-repeat;
         display: block;
         height: 228px;
-        margin: 0 auto;
         text-indent: -9999em;
         width: 395px;
+    }
+
+    h6 {
+        left: 115px;
+        position: absolute;
+        top: 200px;
     }
 }
 
@@ -188,8 +192,22 @@ footer {
             text-align: center;
         }
     }
+
+    #sidebar {
+        nav {
+            padding-top: 0;
+
+            ul li {
+                float: left;
+                width: auto;
+            }
+        }
+    }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
     #sidebar nav ul { width: 100%; }
+    #sidebar {
+        float: right;
+    }
 }
