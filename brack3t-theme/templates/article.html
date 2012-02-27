@@ -8,4 +8,14 @@
         </header>
         {{ article.content }}
     </article>
+
+	{% if DISQUS_SITENAME %}
+	<article>
+		<header>
+			<h2>Comments</h2>
+		</header>
+		<div id="disqus_thread"></div>
+	</article>
+	{% endif %}
+
 {% endblock %}
