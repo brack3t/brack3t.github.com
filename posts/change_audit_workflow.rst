@@ -139,6 +139,8 @@ editors/superusers. So, here's our ``POIUpdateView``:
 
 .. code-block:: django
 
+    # pydanny note: Careful using non-core Mixins like SetHeadlineMixin without an explanation
+    #     You'll confuse a lot of people like me. ;)
     class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
         SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):
         """
@@ -189,7 +191,7 @@ our ``POIChange`` model. We don't just start with a blank ``POIChange``, though.
 beginning data of the record. We fetch the instance, update our initial data with its values, and 
 then pass it on through to the form.
 
-Once the form is valid, a method I don't show called ``form_valid``, we log the change in our 
+Once the form is valid, in a method I don't show called ``form_valid``, we log the change in our 
 logger, send a message to the user through Django's ``messages`` app, and then our ``post`` method 
 gets called. Learning the workflow order of ``CreateView`` and ``UpdateView`` (and, ultimately, 
 ``FormView``) will save you a huge amount of time when you start customizing these things. In our 
@@ -219,7 +221,6 @@ view. They can also reach it by clicking the link provided to them in the email.
                 return HttpResponseRedirect(reverse("cms_points_change_list"))
 
             return HttpResponseForbidden()
-
 
         def _approved(self):
             """
