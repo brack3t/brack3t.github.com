@@ -173,9 +173,9 @@ another blog post.</p>
 changes for a particular POI. Now, this view is the one that's linked to for each record on the
 list page; we never link to a view where a user can directly update a POI, not even for
 editors/superusers. So, here's our <tt class="docutils literal">POIUpdateView</tt>:</p>
-<div class="highlight"><pre><span class="x"># pydanny note: Careful using non-core Mixins like SetHeadlineMixin without an explanation</span>
-<span class="x">#     You&#39;ll confuse a lot of people like me. ;)</span>
-<span class="x">class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,</span>
+<blockquote>
+<span class="label label-info">note</span> We use a few mixins below that aren't part of the standard Django library: <tt class="docutils literal">LoginRequiredMixin</tt>, <tt class="docutils literal">PermissionRequiredMixin</tt>, <tt class="docutils literal">SuccessURLRedirectListMixin</tt>, and <tt class="docutils literal">SetHeadlineMixin</tt>.</blockquote>
+<div class="highlight"><pre><span class="x">class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,</span>
 <span class="x">    SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):</span>
 <span class="x">    &quot;&quot;&quot;</span>
 <span class="x">    View allows users to propose changes to current POIs.</span>

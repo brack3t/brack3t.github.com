@@ -140,10 +140,13 @@ changes for a particular POI. Now, this view is the one that's linked to for eac
 list page; we never link to a view where a user can directly update a POI, not even for 
 editors/superusers. So, here's our ``POIUpdateView``:
 
+    .. role:: info-label
+        :class: "label label-info"
+
+    :info-label:`note` We use a few mixins below that aren't part of the standard Django library: ``LoginRequiredMixin``, ``PermissionRequiredMixin``, ``SuccessURLRedirectListMixin``, and ``SetHeadlineMixin``.
+
 .. code-block:: django
 
-    # pydanny note: Careful using non-core Mixins like SetHeadlineMixin without an explanation
-    #     You'll confuse a lot of people like me. ;)
     class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
         SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):
         """
