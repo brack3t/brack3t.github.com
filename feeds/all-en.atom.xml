@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-26T11:01:00Z</updated><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Recently, at work, we had need of a workflow where users of a certain access level could submit changes to existing records, but the changes had to be approved by a higher-leveled user before they went live. That
-editor-level user could either approve or deny the changes. We didn't make it to where they could approve &lt;em&gt;part&lt;/em&gt; of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought
-you might be interested in it, so we wanted to show what we did.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-26T11:01:00Z</updated><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
+Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).
+Users and editors can both enter Points into the database, which is PostgreSQL with PostGIS, and then they can be associated
+with any community.  Obviosuly, though, that leads to the problem of Community A editing a POI and Community B showing that data
+without their knowledge, so we'd like to have an editor look at the changes first. That's the need that lead to our workflow.&lt;/p&gt;
 &lt;div class="section" id="models"&gt;
 &lt;h2&gt;Models&lt;/h2&gt;
 &lt;p&gt;First, let's start with the models.&lt;/p&gt;

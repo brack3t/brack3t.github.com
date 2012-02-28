@@ -7,9 +7,11 @@ Change Request Workflow
 :category: django
 :tags: django, workflow, python
 
-Recently, at work, we had need of a workflow where users of a certain access level could submit changes to existing records, but the changes had to be approved by a higher-leveled user before they went live. That 
-editor-level user could either approve or deny the changes. We didn't make it to where they could approve *part* of a change but not all of it, but it wouldn't be hard to extend our workflow to add that in. We thought 
-you might be interested in it, so we wanted to show what we did.
+Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of 
+Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).  
+Users and editors can both enter Points into the database, which is PostgreSQL with PostGIS, and then they can be associated 
+with any community.  Obviosuly, though, that leads to the problem of Community A editing a POI and Community B showing that data 
+without their knowledge, so we'd like to have an editor look at the changes first. That's the need that lead to our workflow.
 
 Models
 ======
