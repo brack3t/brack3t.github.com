@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href=".././feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
+    <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -15,9 +15,9 @@
 
     <!-- Le styles -->
     <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
-    <link href=".././brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href=".././brack3t-theme/assets/github.css" rel="stylesheet">
-    <link href=".././brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/github.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
     <script>
     var _gaq = _gaq || [];
     _gaq.push(["_setAccount", "UA-4642386-4"]);
@@ -57,12 +57,12 @@
                         
                         
                             
-                            <li><a href=".././pages/about-us.html">About</a></li>
+                            <li><a href="./pages/about-us.html">About</a></li>
                             
                         
-                        <li><a href=".././pages/projects.html">Projects</a></li>
-                        <li><a href=".././archives.html">Archives</a></li>
-                        <li><a href=".././tags.html">Tags</a></li>
+                        <li><a href="./pages/projects.html">Projects</a></li>
+                        <li><a href="./archives.html">Archives</a></li>
+                        <li><a href="./tags.html">Tags</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -75,9 +75,9 @@
     <article>
         <header>
             <h1><span class="slabtext">Our Custom Mixins</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">03-01-2012</a></span>
+            <h6><span class="permalink">Published: <a  href="./our-custom-mixins.html">03-01-2012</a></span>
 <span class="author">by <strong>Chris</strong></span>
-<span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/CBVs.html">CBVs</a> </span>
+<span class="tags">tags: <a href="./tag/django.html">django</a> <a href="./tag/CBVs.html">CBVs</a> </span>
 
 </h6>
         </header>
@@ -90,7 +90,7 @@ decent docs, we got frustrated really quickly. Skip forward to today and I can't
 views again. Some argue that the <tt class="docutils literal">generic views</tt> are only for generic applications and that, somehow, their work is far too
 custom and complex to be handled in a generic class-based view. Based on my experience, 99% of the time, they would be wrong.</p>
 <p>We plan on covering generic class-based views extensively with <a class="reference external" href="http://gettingstartedwithdjango.com">GSWD</a>. Today, I'd like to share some mixins we
-have cooked up, on a rather large client project, that have helped us out tremendiously.</p>
+have cooked up, on a rather large client project, that have helped us out tremendously.</p>
 <p>For those of you not familiar with decorating class-based views, check out the Django documentation on
 <a class="reference external" href="https://docs.djangoproject.com/en/dev/topics/class-based-views/#decorating-the-class">decorating the class</a>. We don't like the idea of doing decoration in Django's <tt class="docutils literal">urls.py</tt> or creating
 another instance variable just to hold a decorated class. To us, mixins feel more Pythonic.</p>
@@ -191,7 +191,7 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 
 <span class="x">        return original_return_value</span>
 </pre></div>
-<p>This mixin was actually written, I believe, by <a class="reference external" href="https://github.com/danols">Daniel Sokolowski</a> (<a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48">code here</a>).</p>
+<p>This mixin was originally written, I believe, by <a class="reference external" href="https://github.com/danols">Daniel Sokolowski</a> (<a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48">code here</a>).</p>
 <p>The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
 dispatch method manually on every view that needs to check for the existence of a permission, we inherit this class
 and set the <tt class="docutils literal">permission_required</tt> class attribute on our view. If you don't specify <tt class="docutils literal">permission_required</tt> on
@@ -225,7 +225,7 @@ don't have an authenticated user, there is no sense in checking for any permissi
 
 <span class="x">        return original_return_value</span>
 </pre></div>
-<p>Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privilaged
+<p>Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged
 users should have access to.</p>
 </div>
 <div class="section" id="userformkwargsmixin">
@@ -311,7 +311,7 @@ While this may be overkill for a weekend project, for us, it speeds up adding ne
 <p>The <tt class="docutils literal">SuccessURLRedirectListMixin</tt> is a bit more tailored to how we handle <a class="reference external" href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> within our CMS. Our CMS's workflow, by design,
 redirects the user to the <tt class="docutils literal">ListView</tt> for whatever model they are working with, whether they are creating a new instance, editing
 an existing one or deleting one. Rather than having to override <tt class="docutils literal">get_success_url</tt> on every view, we simply use this mixin and pass it
-a reverseable route name. Example:</p>
+a reversible route name. Example:</p>
 <div class="highlight"><pre><span class="x"># urls.py</span>
 <span class="x">url(r&quot;^users/$&quot;, UserListView.as_view(), name=&quot;cms_users_list&quot;),</span>
 
@@ -393,17 +393,17 @@ any questions, leave a comment or hit us up on Twitter.</p>
 
             </div>
         </div>
-        <footer><p>&copy; Brack3t. All rights reserved. <a href=".././feeds/all.atom.xml">ATOM feed</a></p></footer>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href="./feeds/all.atom.xml">ATOM feed</a></p></footer>
     </div> <!-- /container -->
 
     <!-- Le javascript
     ================================================== -->
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src=".././brack3t-theme/assets/jquery-1.7.1.min.js"></script>
-    <script src=".././brack3t-theme/assets/jquery.slabtext.min.js"></script>
-    <script src=".././brack3t-theme/assets/jquery.fittext.js"></script>
-    <script src=".././brack3t-theme/assets/highlight.pack.js"></script>
+    <script src="./brack3t-theme/assets/jquery-1.7.1.min.js"></script>
+    <script src="./brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src="./brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src="./brack3t-theme/assets/highlight.pack.js"></script>
     <script>
         $(function() {
             $(".slabtext").slabText();

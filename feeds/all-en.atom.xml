@@ -1,5 +1,302 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-29T21:05:18Z</updated><entry><title>Generic Layouts in Crispy Forms</title><link href="http://brack3t.com/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-02-29T21:05:18Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-29:/generic-layouts-in-crispy-forms.html/</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-01T12:24:18Z</updated><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-01T12:24:18Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-01:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
+thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still
+lacking but I find a lot of people, especially on &lt;a class="reference external" href="http://reddit.com/r/django"&gt;Reddit&lt;/a&gt;, refuse to use them. For whatever reason, it's a hard
+pill for some to swallow.&lt;/p&gt;
+&lt;p&gt;Before DjangoCon 2011, we started playing with class-based views. At first they seemed like a nightmare and without
+decent docs, we got frustrated really quickly. Skip forward to today and I can't imagine writing old function-based
+views again. Some argue that the &lt;tt class="docutils literal"&gt;generic views&lt;/tt&gt; are only for generic applications and that, somehow, their work is far too
+custom and complex to be handled in a generic class-based view. Based on my experience, 99% of the time, they would be wrong.&lt;/p&gt;
+&lt;p&gt;We plan on covering generic class-based views extensively with &lt;a class="reference external" href="http://gettingstartedwithdjango.com"&gt;GSWD&lt;/a&gt;. Today, I'd like to share some mixins we
+have cooked up, on a rather large client project, that have helped us out tremendously.&lt;/p&gt;
+&lt;p&gt;For those of you not familiar with decorating class-based views, check out the Django documentation on
+&lt;a class="reference external" href="https://docs.djangoproject.com/en/dev/topics/class-based-views/#decorating-the-class"&gt;decorating the class&lt;/a&gt;. We don't like the idea of doing decoration in Django's &lt;tt class="docutils literal"&gt;urls.py&lt;/tt&gt; or creating
+another instance variable just to hold a decorated class. To us, mixins feel more Pythonic.&lt;/p&gt;
+&lt;div class="contents well topic" id="mixins"&gt;
+&lt;p class="topic-title first"&gt;Mixins&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#loginrequiredmixin" id="id1"&gt;LoginRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#permissionrequiredmixin" id="id2"&gt;PermissionRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#superuserrequiredmixin" id="id3"&gt;SuperuserRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#userformkwargsmixin" id="id4"&gt;UserFormKwargsMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#userkwargmodelformmixin" id="id5"&gt;UserKwargModelFormMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#successurlredirectlistmixin" id="id6"&gt;SuccessURLRedirectListMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#setheadlinemixin" id="id7"&gt;SetHeadlineMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#conclusion" id="id8"&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="loginrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id1"&gt;LoginRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class LoginRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View mixin which verifies that the user has authenticated.&lt;/span&gt;
+
+&lt;span class="x"&gt;    NOTE:&lt;/span&gt;
+&lt;span class="x"&gt;        This should be the left-most mixin of a view.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    @method_decorator(login_required)&lt;/span&gt;
+&lt;span class="x"&gt;    def dispatch(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This mixin is rather simple and is generally the first inherited class in any of our views. If we don't have an authenticated user
+there's no need to go any further. If you've used Django before you are probably familiar with the &lt;tt class="docutils literal"&gt;login_required&lt;/tt&gt; decorator.
+All we are doing here is requiring a user to be authenticated to be able to get to this view.&lt;/p&gt;
+&lt;p&gt;While this doesn't look like much, it frees us up from having to manually overload the dispatch method on every single view that
+requires a user to be authenticated. If that's all that is needed on this view, we just saved 3 lines of code. Example usage below.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.views.generic import TemplateView&lt;/span&gt;
+
+&lt;span class="x"&gt;from myapp.mixins import LoginRequiredMixin&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class SomeSecretView(LoginRequiredMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get(self, request):&lt;/span&gt;
+&lt;span class="x"&gt;        return self.render_to_response({})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="permissionrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id2"&gt;PermissionRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class PermissionRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View mixin which verifies that the logged in user has the specified&lt;/span&gt;
+&lt;span class="x"&gt;    permission.&lt;/span&gt;
+
+&lt;span class="x"&gt;    Class Settings&lt;/span&gt;
+&lt;span class="x"&gt;    `permission_required` - the permission to check for.&lt;/span&gt;
+&lt;span class="x"&gt;    `login_url` - the login url of site&lt;/span&gt;
+&lt;span class="x"&gt;    `redirect_field_name` - defaults to &amp;quot;next&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    `raise_exception` - defaults to False - raise 403 if set to True&lt;/span&gt;
+
+&lt;span class="x"&gt;    Example Usage&lt;/span&gt;
+
+&lt;span class="x"&gt;        class SomeView(PermissionRequiredMixin, ListView):&lt;/span&gt;
+&lt;span class="x"&gt;            ...&lt;/span&gt;
+&lt;span class="x"&gt;            # required&lt;/span&gt;
+&lt;span class="x"&gt;            permission_required = &amp;quot;app.permission&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;            # optional&lt;/span&gt;
+&lt;span class="x"&gt;            login_url = &amp;quot;/signup/&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;            redirect_field_name = &amp;quot;hollaback&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;            raise_exception = True&lt;/span&gt;
+&lt;span class="x"&gt;            ...&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    login_url = settings.LOGIN_URL&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = None&lt;/span&gt;
+&lt;span class="x"&gt;    raise_exception = False&lt;/span&gt;
+&lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
+
+&lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        original_return_value = super(PermissionRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
+
+&lt;span class="x"&gt;        # Verify class settings&lt;/span&gt;
+&lt;span class="x"&gt;        if self.permission_required == None or len(&lt;/span&gt;
+&lt;span class="x"&gt;            self.permission_required.split(&amp;quot;.&amp;quot;)) != 2:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ImproperlyConfigured(&amp;quot;&amp;#39;PermissionRequiredMixin&amp;#39; requires &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;quot;&amp;#39;permission_required&amp;#39; attribute to be set.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;        has_permission = request.user.has_perm(self.permission_required)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if not has_permission:&lt;/span&gt;
+&lt;span class="x"&gt;            if self.raise_exception:&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseForbidden()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                path = urlquote(request.get_full_path())&lt;/span&gt;
+&lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return original_return_value&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This mixin was originally written, I believe, by &lt;a class="reference external" href="https://github.com/danols"&gt;Daniel Sokolowski&lt;/a&gt; (&lt;a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48"&gt;code here&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
+dispatch method manually on every view that needs to check for the existence of a permission, we inherit this class
+and set the &lt;tt class="docutils literal"&gt;permission_required&lt;/tt&gt; class attribute on our view. If you don't specify &lt;tt class="docutils literal"&gt;permission_required&lt;/tt&gt; on
+your view, an &lt;tt class="docutils literal"&gt;ImproperlyConfigured&lt;/tt&gt; exception is raised reminding you that you haven't set it.&lt;/p&gt;
+&lt;p&gt;The one limitation of this mixin is that it can &lt;strong&gt;only&lt;/strong&gt; accept a single permission. It would need to be modified to
+handle more than one. We haven't needed that yet, so this has worked out well for us.&lt;/p&gt;
+&lt;p&gt;In our normal use case for this mixin, &lt;tt class="docutils literal"&gt;LoginRequiredMixin&lt;/tt&gt; comes first, then the &lt;tt class="docutils literal"&gt;PermissionRequiredMixin&lt;/tt&gt;. If we
+don't have an authenticated user, there is no sense in checking for any permissions.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;span class="label label-info"&gt;note&lt;/span&gt; If you are using Django's built in auth system, &lt;tt class="docutils literal"&gt;superusers&lt;/tt&gt; automatically have all permissions in your system.&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="superuserrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id3"&gt;SuperuserRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SuperuserRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    login_url = settings.LOGIN_URL&lt;/span&gt;
+&lt;span class="x"&gt;    raise_exception = False&lt;/span&gt;
+&lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
+
+&lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        original_return_value = super(&lt;/span&gt;
+&lt;span class="x"&gt;            SuperuserRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if not request.user.is_superuser:&lt;/span&gt;
+&lt;span class="x"&gt;            if self.raise_exception:&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseForbidden()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                path = urlquote(request.get_full_path())&lt;/span&gt;
+&lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return original_return_value&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged
+users should have access to.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="userformkwargsmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id4"&gt;UserFormKwargsMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserFormKwargsMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    CBV mixin which puts the user from the request into the form kwargs.&lt;/span&gt;
+&lt;span class="x"&gt;    Note: Using this mixin requires you to pop the `user` kwarg&lt;/span&gt;
+&lt;span class="x"&gt;    out of the dict in the super of your form&amp;#39;s `__init__`.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    def get_form_kwargs(self, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs = super(UserFormKwargsMixin, self).get_form_kwargs(**kwargs)&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs.update({&amp;quot;user&amp;quot;: self.request.user})&lt;/span&gt;
+&lt;span class="x"&gt;        return kwargs&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In our clients CMS, we have a lot of form-based views that require a user to be passed in for permission-based form tools. For example,
+only superusers can delete or disable certain objects. To custom tailor the form for users, we have to pass that user instance into the form
+and based on their permission level, change certain fields or add specific options within the forms &lt;tt class="docutils literal"&gt;__init__&lt;/tt&gt; method.&lt;/p&gt;
+&lt;p&gt;This mixin automates the process of overloading the &lt;tt class="docutils literal"&gt;get_form_kwargs&lt;/tt&gt; (this method is available in any generic view which handles a form) method
+and stuffs the user instance into the form kwargs. We can then pop the user off in the form and do with it what we need. &lt;strong&gt;Always&lt;/strong&gt; remember
+to pop the user from the kwargs before calling &lt;tt class="docutils literal"&gt;super&lt;/tt&gt; on your form, otherwise the form gets an unexpected keyword argument and everything
+blows up. Example usage:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.views.generic import CreateView&lt;/span&gt;
+
+&lt;span class="x"&gt;from myapp.mixins import LoginRequiredMixin, UserFormKwargsMixin&lt;/span&gt;
+&lt;span class="x"&gt;from next.example import UserForm&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class SomeSecretView(LoginRequiredMixin, UserFormKwargsMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    TemplateView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = UserForm&lt;/span&gt;
+&lt;span class="x"&gt;    model = User&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="userkwargmodelformmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id5"&gt;UserKwargModelFormMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserKwargModelFormMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Generic model form mixin for popping user out of the kwargs and&lt;/span&gt;
+&lt;span class="x"&gt;    attaching it to the instance.&lt;/span&gt;
+
+&lt;span class="x"&gt;    This mixin must precede forms.ModelForm/forms.Form. The form is not&lt;/span&gt;
+&lt;span class="x"&gt;    expecting these kwargs to be passed in, so they must be poppped off before&lt;/span&gt;
+&lt;span class="x"&gt;    anything else is done.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        self.user = kwargs.pop(&amp;quot;user&amp;quot;, None)&lt;/span&gt;
+&lt;span class="x"&gt;        super(UserKwargModelFormMixin, self).__init__(*args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;UserKwargModelFormMixin&lt;/tt&gt; is a new form mixin we just implemented this week to go along with our &lt;tt class="docutils literal"&gt;UserFormKwargsMixin&lt;/tt&gt;.
+This becomes the first inherited class of our forms that receive the user keyword argument. With this mixin, we have automated
+the popping off of the keyword argument in our form and no longer have to do it manually on every form that works this way.
+While this may be overkill for a weekend project, for us, it speeds up adding new features. Example usage:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserForm(UserKwargModelFormMixin, forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = User&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        super(UserForm, self).__init__(*args, **kwargs):&lt;/span&gt;
+
+&lt;span class="x"&gt;        if not self.user.is_superuser:&lt;/span&gt;
+&lt;span class="x"&gt;            del self.fields[&amp;quot;group&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="successurlredirectlistmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id6"&gt;SuccessURLRedirectListMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SuccessURLRedirectListMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Simple CBV mixin which sets the success url to the list view of&lt;/span&gt;
+&lt;span class="x"&gt;    a given app. Set success_list_url as a class attribute of your&lt;/span&gt;
+&lt;span class="x"&gt;    CBV and don&amp;#39;t worry about overloading the get_success_url.&lt;/span&gt;
+
+&lt;span class="x"&gt;    This is only to be used for redirecting to a list page. If you need&lt;/span&gt;
+&lt;span class="x"&gt;    to reverse the url with kwargs, this is not the mixin to use.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_success_url(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return reverse(self.success_list_url)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt; is a bit more tailored to how we handle &lt;a class="reference external" href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete"&gt;CRUD&lt;/a&gt; within our CMS. Our CMS's workflow, by design,
+redirects the user to the &lt;tt class="docutils literal"&gt;ListView&lt;/tt&gt; for whatever model they are working with, whether they are creating a new instance, editing
+an existing one or deleting one. Rather than having to override &lt;tt class="docutils literal"&gt;get_success_url&lt;/tt&gt; on every view, we simply use this mixin and pass it
+a reversible route name. Example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;# urls.py&lt;/span&gt;
+&lt;span class="x"&gt;url(r&amp;quot;^users/$&amp;quot;, UserListView.as_view(), name=&amp;quot;cms_users_list&amp;quot;),&lt;/span&gt;
+
+&lt;span class="x"&gt;# views.py&lt;/span&gt;
+&lt;span class="x"&gt;class UserCreateView(LoginRequiredMixin, PermissionRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    SuccessURLRedirectListMixin, CreateView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = UserForm&lt;/span&gt;
+&lt;span class="x"&gt;    model = User&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = &amp;quot;auth.add_user&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = &amp;quot;cms_users_list&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="setheadlinemixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;SetHeadlineMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SetHeadlineMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Mixin allows you to set a static headline through a static property on the&lt;/span&gt;
+&lt;span class="x"&gt;    class or programmatically by overloading the get_headline method.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    headline = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_context_data(self, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs = super(SetHeadlineMixin, self).get_context_data(**kwargs)&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs.update({&amp;quot;headline&amp;quot;: self.get_headline()})&lt;/span&gt;
+&lt;span class="x"&gt;        return kwargs&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_headline(self):&lt;/span&gt;
+&lt;span class="x"&gt;        if self.headline is None:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ImproperlyConfigured(u&amp;quot;%(cls)s is missing a headline. Define &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                u&amp;quot;%(cls)s.headline, or override &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                u&amp;quot;%(cls)s.get_headline().&amp;quot; % {&amp;quot;cls&amp;quot;: self.__class__.__name__&lt;/span&gt;
+&lt;span class="x"&gt;            })&lt;/span&gt;
+&lt;span class="x"&gt;        return self.headline&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;SetHeadlineMixin&lt;/tt&gt; is a newer edition to our client's CMS. It allows us to &lt;em&gt;statically&lt;/em&gt; or &lt;em&gt;programmatically&lt;/em&gt; set the headline of any
+of our views. We like to write as few templates as possible, so a mixin like this helps us reuse generic templates. Its usage is amazingly
+straightforward and works much like Django's built-in &lt;tt class="docutils literal"&gt;get_queryset&lt;/tt&gt; method. This mixin has two ways of being used.&lt;/p&gt;
+&lt;div class="section" id="static-example"&gt;
+&lt;h3&gt;Static Example&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class HeadlineView(SetHeadlineMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    headline = &amp;quot;This is our headline&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="dynamic-example"&gt;
+&lt;h3&gt;Dynamic Example&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from datetime import date&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class HeadlineView(SetHeadlineMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_headline(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return u&amp;quot;This is our headline for %s&amp;quot; % date.today().isoformat()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In both usages, in the template, just print out &lt;tt class="docutils literal"&gt;{{ headline }}&lt;/tt&gt; to show the generated headline.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="conclusion"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id8"&gt;Conclusion&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Hopefully we've inspired you to use class-based views and custom mixins in your own projects or, at the very least, give class-based views another look.
+Writing custom mixins helps to alleviate pain points in your project and make it faster to create new features, at least is has for us. If you have
+any questions, leave a comment or hit us up on Twitter.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="CBVs"></category></entry><entry><title>Generic Layouts in Crispy Forms</title><link href="http://brack3t.com/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-02-29T21:05:18Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-29:/generic-layouts-in-crispy-forms.html/</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
 &lt;p&gt;This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt;. It's a pretty painless
 transition, actually. Just do some find-and-replace across your files, basically changing any instance of &lt;tt class="docutils literal"&gt;uni-&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;crispy-&lt;/tt&gt; (well, and &lt;tt class="docutils literal"&gt;form&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;forms&lt;/tt&gt;), and you're good to go. Then, however, I wanted to
 convert two large forms that we have, which share 90% of their fields, to using the sharable &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; objects that &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt; gives us.&lt;/p&gt;
