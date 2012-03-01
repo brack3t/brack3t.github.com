@@ -75,7 +75,7 @@
     <article>
         <header>
             <h1><span class="slabtext">Our Custom Mixins</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">02-26-2012</a></span>
+            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">02-27-2012</a></span>
 <span class="author">by <strong>Chris</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/CBVs.html">CBVs</a> </span>
 
@@ -83,19 +83,126 @@
         </header>
         <div class="section" id="loginrequiredmixin">
 <h2>LoginRequiredMixin</h2>
+<div class="highlight"><pre><span class="x">class LoginRequiredMixin(object):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    View mixin which verifies that the user has authenticated.</span>
+
+<span class="x">    NOTE:</span>
+<span class="x">        This should be the left-most mixin of a view.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+
+<span class="x">    @method_decorator(login_required)</span>
+<span class="x">    def dispatch(self, *args, **kwargs):</span>
+<span class="x">        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)</span>
+</pre></div>
 </div>
 <div class="section" id="permissionrequiredmixin">
 <h2>PermissionRequiredMixin</h2>
+<div class="highlight"><pre><span class="x">class PermissionRequiredMixin(object):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    View mixin which verifies that the logged in user has the specified</span>
+<span class="x">    permission.</span>
+
+<span class="x">    Class Settings</span>
+<span class="x">    `permission_required` - the permission to check for.</span>
+<span class="x">    `login_url` - the login url of site</span>
+<span class="x">    `redirect_field_name` - defaults to &quot;next&quot;</span>
+<span class="x">    `raise_exception` - defaults to False - raise 403 if set to True</span>
+
+<span class="x">    Example Usage</span>
+
+<span class="x">        class SomeView(PermissionRequiredMixin, ListView):</span>
+<span class="x">            ...</span>
+<span class="x">            # required</span>
+<span class="x">            permission_required = &quot;app.permission&quot;</span>
+
+<span class="x">            # optional</span>
+<span class="x">            login_url = &quot;/signup/&quot;</span>
+<span class="x">            redirect_field_name = &quot;hollaback&quot;</span>
+<span class="x">            raise_exception = True</span>
+<span class="x">            ...</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    login_url = settings.LOGIN_URL</span>
+<span class="x">    permission_required = None</span>
+<span class="x">    raise_exception = False</span>
+<span class="x">    redirect_field_name = REDIRECT_FIELD_NAME</span>
+
+<span class="x">    def dispatch(self, request, *args, **kwargs):</span>
+<span class="x">        original_return_value = super(PermissionRequiredMixin, self).dispatch(</span>
+<span class="x">            request, *args, **kwargs)</span>
+
+<span class="x">        # Verify class settings</span>
+<span class="x">        if self.permission_required == None or len(</span>
+<span class="x">            self.permission_required.split(&quot;.&quot;)) != 2:</span>
+<span class="x">            raise ImproperlyConfigured(&quot;&#39;PermissionRequiredMixin&#39; requires &quot;</span>
+<span class="x">                &quot;&#39;permission_required&#39; attribute to be set.&quot;)</span>
+
+<span class="x">        has_permission = request.user.has_perm(self.permission_required)</span>
+
+<span class="x">        if not has_permission:</span>
+<span class="x">            if self.raise_exception:</span>
+<span class="x">                return HttpResponseForbidden()</span>
+<span class="x">            else:</span>
+<span class="x">                path = urlquote(request.get_full_path())</span>
+<span class="x">                tup = self.login_url, self.redirect_field_name, path</span>
+<span class="x">                return HttpResponseRedirect(&quot;%s?%s=%s&quot; % tup)</span>
+
+<span class="x">        return original_return_value</span>
+</pre></div>
 </div>
 <div class="section" id="superuserrequiredmixin">
 <h2>SuperuserRequiredMixin</h2>
-</div>
-<div class="section" id="setheadlinemixin">
-<h2>SetHeadlineMixin</h2>
-<p>(obviously not until we flesh it out)</p>
+<div class="highlight"><pre><span class="x">class SuperuserRequiredMixin(object):</span>
+<span class="x">    login_url = settings.LOGIN_URL</span>
+<span class="x">    raise_exception = False</span>
+<span class="x">    redirect_field_name = REDIRECT_FIELD_NAME</span>
+
+<span class="x">    def dispatch(self, request, *args, **kwargs):</span>
+<span class="x">        original_return_value = super(</span>
+<span class="x">            SuperuserRequiredMixin, self).dispatch(</span>
+<span class="x">            request, *args, **kwargs)</span>
+
+<span class="x">        if not request.user.is_superuser:</span>
+<span class="x">            if self.raise_exception:</span>
+<span class="x">                return HttpResponseForbidden()</span>
+<span class="x">            else:</span>
+<span class="x">                path = urlquote(request.get_full_path())</span>
+<span class="x">                tup = self.login_url, self.redirect_field_name, path</span>
+<span class="x">                return HttpResponseRedirect(&quot;%s?%s=%s&quot; % tup)</span>
+
+<span class="x">        return original_return_value</span>
+</pre></div>
 </div>
 <div class="section" id="userformkwargsmixin">
 <h2>UserFormKwargsMixin</h2>
+<div class="highlight"><pre><span class="x">class UserFormKwargsMixin(object):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    CBV mixin which puts the user from the request into the form kwargs.</span>
+<span class="x">    Note: Using this mixin requires you to pop the `user` kwarg</span>
+<span class="x">    out of the dict in the super of your form&#39;s `__init__`.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    def get_form_kwargs(self, **kwargs):</span>
+<span class="x">        kwargs = super(UserFormKwargsMixin, self).get_form_kwargs(**kwargs)</span>
+<span class="x">        kwargs.update({&quot;user&quot;: self.request.user})</span>
+<span class="x">        return kwargs</span>
+</pre></div>
+</div>
+<div class="section" id="successurlredirectlistmixin">
+<h2>SuccessURLRedirectListMixin</h2>
+<div class="highlight"><pre><span class="x">class SuccessURLRedirectListMixin(object):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    Simple CBV mixin which sets the success url to the list view of</span>
+<span class="x">    a given app. Set success_list_url as a class attribute of your</span>
+<span class="x">    CBV and don&#39;t worry about overloading the get_success_url.</span>
+
+<span class="x">    This is only to be used for redirecting to a list page. If you need</span>
+<span class="x">    to reverse the url with kwargs, this is not the mixin to use.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    success_list_url = None</span>
+
+<span class="x">    def get_success_url(self):</span>
+<span class="x">        return reverse(self.success_list_url)</span>
+</pre></div>
 </div>
 
     </article>
