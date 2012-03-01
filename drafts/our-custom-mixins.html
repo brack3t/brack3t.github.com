@@ -75,13 +75,26 @@
     <article>
         <header>
             <h1><span class="slabtext">Our Custom Mixins</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">02-27-2012</a></span>
+            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">02-29-2012</a></span>
 <span class="author">by <strong>Chris</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/CBVs.html">CBVs</a> </span>
 
 </h6>
         </header>
-        <div class="section" id="loginrequiredmixin">
+        <p>Let's just start out and say it, <tt class="docutils literal">Class Based Views</tt>. Ooohhhh. Unfortunately the topic of class based views is
+thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still very
+lacking but I find a lot of people, especially on Reddit, that refuse to use them. For whatever reason, it's a hard
+pill for some to swallow.</p>
+<p>Before Djangocon 2011, we started playing with class based views. At first they seem like a nightmare and without
+decent docs, you can get frustrated really fast. Skip forward to today and I can't imagine writing old function based
+views again. Some argue that the <tt class="docutils literal">generic views</tt> are only for generic applications and that somehow, their work is far too
+custom and complex to be handled in a generic class based view. Based on my experience, they would be mostly wrong. I'll
+leave that mostly in there for the 1-2% that that might apply to.</p>
+<p>We plan on covering generic class based views extensively with <a class="reference external" href="http://gettingstartedwithdjango.com">GSWD</a>. Today, I'd like to share some mixins we
+have cooked up on a rather large client project that have helped us out tremendiously.</p>
+<p>For those of you not familiar with decorating class based views, check out the Django documentation on
+<a class="reference external" href="https://docs.djangoproject.com/en/dev/topics/class-based-views/#decorating-the-class">decorating the class</a>.</p>
+<div class="section" id="loginrequiredmixin">
 <h2>LoginRequiredMixin</h2>
 <div class="highlight"><pre><span class="x">class LoginRequiredMixin(object):</span>
 <span class="x">    &quot;&quot;&quot;</span>
@@ -94,6 +107,22 @@
 <span class="x">    @method_decorator(login_required)</span>
 <span class="x">    def dispatch(self, *args, **kwargs):</span>
 <span class="x">        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)</span>
+</pre></div>
+<p>This mixin is rather simple and is generally the first inherited class in any of our views. If we don't have an authenticated user
+there's no need to go any further. If you've used Django before you are probably familiar with the <tt class="docutils literal">login_required</tt> decorator.
+All we are doing here is requiring a user to be authenticated to be able to get to this view.</p>
+<p>While this doesn't look like much, it frees us up from having to manually overload the dispath method on every single view that
+requires a user to be authenticated. If that's all that is needed on this view, we just saved 3 lines of code. Example usage below.</p>
+<div class="highlight"><pre><span class="x">from django.views.generic import TemplateView</span>
+
+<span class="x">from myapp.mixins import LoginRequiredMixin</span>
+
+
+<span class="x">class SomeSecretView(LoginRequiredMixin, TemplateView):</span>
+<span class="x">    template_name = &quot;path/to/template.html&quot;</span>
+
+<span class="x">    def get(self, request):</span>
+<span class="x">        return self.render_to_response({})</span>
 </pre></div>
 </div>
 <div class="section" id="permissionrequiredmixin">
@@ -149,6 +178,13 @@
 
 <span class="x">        return original_return_value</span>
 </pre></div>
+<p><tt class="docutils literal">This is a mixin that we did not write. Find user who wrote it and give thanks.</tt>
+The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
+dispatch method manually on every view that needs to check a permission, we inherit this class and set the
+<tt class="docutils literal">permission_required</tt> class attribute on our view. If you don't specify <tt class="docutils literal">permission_required</tt> on your view,
+an <tt class="docutils literal">ImproperlyConfigured</tt> exception is raised reminding you that you haven't set it.</p>
+<blockquote>
+<span class="label label-info">note</span> If you are using Django's built in auth system, <tt class="docutils literal">superusers</tt> automatically have all permissions in your system.</blockquote>
 </div>
 <div class="section" id="superuserrequiredmixin">
 <h2>SuperuserRequiredMixin</h2>
@@ -172,6 +208,8 @@
 
 <span class="x">        return original_return_value</span>
 </pre></div>
+<p>Another permission based mixin. This is specifically for requiring a user to be a super user. Comes in handy for tools that only privilaged
+users should have access to.</p>
 </div>
 <div class="section" id="userformkwargsmixin">
 <h2>UserFormKwargsMixin</h2>
@@ -185,6 +223,38 @@
 <span class="x">        kwargs = super(UserFormKwargsMixin, self).get_form_kwargs(**kwargs)</span>
 <span class="x">        kwargs.update({&quot;user&quot;: self.request.user})</span>
 <span class="x">        return kwargs</span>
+</pre></div>
+<p>In our clients CMS, we have a lot of form based views that require a user to be passed in for permission based form tools. For example,
+only super users can delete or disable certain objects. To custom tailor the form for users, we have to pass that user instance into the form
+and based on their permission level, change certain fields or add specific options within the forms <tt class="docutils literal">__init__</tt> method.</p>
+<p>This mixin automates the process of overloading the <tt class="docutils literal">get_form_kwargs</tt> method and stuffs the user instance into the form kwargs. We can then
+pop the user off in the form and do with it what we need. <strong>Always</strong> remember to pop the user from the kwargs before calling <tt class="docutils literal">super</tt> on your
+form, otherwise the form gets an unexpected kwarg and everything blows up. Example usage:</p>
+<div class="highlight"><pre><span class="x">from django.views.generic import CreateView</span>
+
+<span class="x">from myapp.mixins import LoginRequiredMixin, UserFormKwargsMixin</span>
+
+
+<span class="x">class SomeForm(forms.ModelForm):</span>
+<span class="x">    class Meta:</span>
+<span class="x">        model = SomeModel</span>
+
+<span class="x">    def __init__(self, *args, **kwargs):</span>
+<span class="x">        self.user = kwargs.pop(&quot;user&quot;, None)</span>
+<span class="x">        super(SomeForm, self).__init__(*args, **kwargs)</span>
+
+<span class="x">        if self.user.is_superuser:</span>
+<span class="x">            ...</span>
+<span class="x">            Allow them to do something awesome.</span>
+<span class="x">            ...</span>
+
+
+<span class="x">class SomeSecretView(LoginRequiredMixin, UserFormKwargsMixin,</span>
+<span class="x">    TemplateView):</span>
+
+<span class="x">    form_class = SomeForm</span>
+<span class="x">    model = SomeModel</span>
+<span class="x">    template_name = &quot;path/to/template.html&quot;</span>
 </pre></div>
 </div>
 <div class="section" id="successurlredirectlistmixin">
@@ -202,6 +272,29 @@
 
 <span class="x">    def get_success_url(self):</span>
 <span class="x">        return reverse(self.success_list_url)</span>
+</pre></div>
+</div>
+<div class="section" id="id1">
+<h2>SuccessURLRedirectListMixin</h2>
+<div class="highlight"><pre><span class="x">class SetHeadlineMixin(object):</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    Mixin allows you to set a static headline through a static property on the</span>
+<span class="x">    class or programmatically by overloading the get_headline method.</span>
+<span class="x">    &quot;&quot;&quot;</span>
+<span class="x">    headline = None</span>
+
+<span class="x">    def get_context_data(self, **kwargs):</span>
+<span class="x">        kwargs = super(SetHeadlineMixin, self).get_context_data(**kwargs)</span>
+<span class="x">        kwargs.update({&quot;headline&quot;: self.get_headline()})</span>
+<span class="x">        return kwargs</span>
+
+<span class="x">    def get_headline(self):</span>
+<span class="x">        if self.headline is None:</span>
+<span class="x">            raise ImproperlyConfigured(u&quot;%(cls)s is missing a headline. Define &quot;</span>
+<span class="x">                u&quot;%(cls)s.headline, or override &quot;</span>
+<span class="x">                u&quot;%(cls)s.get_headline().&quot; % {&quot;cls&quot;: self.__class__.__name__</span>
+<span class="x">            })</span>
+<span class="x">        return self.headline</span>
 </pre></div>
 </div>
 
