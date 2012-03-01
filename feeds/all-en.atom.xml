@@ -1,5 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-26T11:01:00Z</updated><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-02-29T18:11:15Z</updated><entry><title>Generic Layouts in Crispy Forms</title><link href="http://brack3t.com/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-02-29T18:11:15Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-29:/generic-layouts-in-crispy-forms.html/</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
+&lt;p&gt;This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt;. It's a pretty painless
+transition, actually. Just do some find-and-replace across your files, basically changing any instance of &lt;tt class="docutils literal"&gt;uni-&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;crispy-&lt;/tt&gt; (well, and &lt;tt class="docutils literal"&gt;form&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;forms&lt;/tt&gt;), and you're good to go. Then, however, I wanted to
+convert two large forms that we have, which share 90% of their fields, to using the sharable &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; objects that &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt; gives us.&lt;/p&gt;
+&lt;p&gt;Basically, the forms looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class FirstForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 through field20]&lt;/span&gt;
+
+&lt;span class="x"&gt;class SecondForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 thorugh field20]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Obviously that was a lot of repetition that we could cut out now that these inheritable layouts exist. By the way, I'm pretty sure this would have been possible in &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; but likely not as friendly.&lt;/p&gt;
+&lt;p&gt;First I started off by creating the shared resources. I made two of them since our special fields come in the middle of our layouts.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;form_intro_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field2&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;form_common_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field3&lt;/span&gt; &lt;span class="n"&gt;through&lt;/span&gt; &lt;span class="n"&gt;field20&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And I added them each into my forms. I'm only going to show one form but you'll get the idea.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;self.form_intro_layout = form_intro_layout&lt;/span&gt;
+&lt;span class="x"&gt;self.form_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;    self.form_intro_layout,&lt;/span&gt;
+&lt;span class="x"&gt;    form_common_layout&lt;/span&gt;
+&lt;span class="x"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And, display-wise, it worked fine. This is, ideally, exactly what you do to extend these layouts. &lt;strong&gt;But&lt;/strong&gt;, this causes problems in testing.&lt;/p&gt;
+&lt;p&gt;We test all of our views, models, and forms. The form tests passed fine, but some of the view tests were throwing up warnings about fields being referenced more than once and, for example, &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;special-field2&lt;/span&gt;&lt;/tt&gt; missing
+from &lt;tt class="docutils literal"&gt;FirstForm&lt;/tt&gt;. Obviously something was up with the inheritance and with how I was instantiating objects.&lt;/p&gt;
+&lt;p&gt;My next step was to stop using &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; on the instance-specific versions of the generic layouts and just give them a local name like &lt;tt class="docutils literal"&gt;standard_intro_layout&lt;/tt&gt; (the &lt;tt class="docutils literal"&gt;standard&lt;/tt&gt; name makes more sense internally and its
+meaning isn't important for this example), but that didn't stop the errors. It did, however, still work fine visually.&lt;/p&gt;
+&lt;p&gt;I tried using a &lt;tt class="docutils literal"&gt;.copy()&lt;/tt&gt; method on the layout, but that doesn't exist. So I turned to the &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; module of Python, specifically the &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt; method. I tried with just the standard &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; method, but it had
+the same effect of working visually, but throwing warnings on tests.&lt;/p&gt;
+&lt;p&gt;The new version looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from copy import deepcopy&lt;/span&gt;
+
+&lt;span class="x"&gt;standard_intro_layout = deepcopy(form_intro_layout)&lt;/span&gt;
+&lt;span class="x"&gt;standard_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That works perfectly! It still appears the same visually, like all the methods have, and it also quiets the tests so they pass without warnings.&lt;/p&gt;
+&lt;p&gt;Unless someone knows of a reason I shouldn't use &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt;, this seems to be the way to solve this problem. I'm also not sure if it was the &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; (which I doubt, since I removed it and the warnings still
+happened), or the fact that both forms extend the same abstract form, or some other variable that led to the problem. Regardless, I'm happy to have solved it.&lt;/p&gt;
+</summary><category term="django"></category><category term="django-crispy-forms"></category><category term="tip"></category></entry><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
 Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).
 Users and editors can both enter Points into the database, which is PostgreSQL with PostGIS, and then they can be associated
 with any community.  Obviosuly, though, that leads to the problem of Community A editing a POI and Community B showing that data
