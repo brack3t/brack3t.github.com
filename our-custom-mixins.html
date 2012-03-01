@@ -170,9 +170,6 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 <span class="x">    redirect_field_name = REDIRECT_FIELD_NAME</span>
 
 <span class="x">    def dispatch(self, request, *args, **kwargs):</span>
-<span class="x">        original_return_value = super(PermissionRequiredMixin, self).dispatch(</span>
-<span class="x">            request, *args, **kwargs)</span>
-
 <span class="x">        # Verify class settings</span>
 <span class="x">        if self.permission_required == None or len(</span>
 <span class="x">            self.permission_required.split(&quot;.&quot;)) != 2:</span>
@@ -189,7 +186,8 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 <span class="x">                tup = self.login_url, self.redirect_field_name, path</span>
 <span class="x">                return HttpResponseRedirect(&quot;%s?%s=%s&quot; % tup)</span>
 
-<span class="x">        return original_return_value</span>
+<span class="x">        return super(PermissionRequiredMixin, self).dispatch(</span>
+<span class="x">            request, *args, **kwargs)</span>
 </pre></div>
 <p>This mixin was originally written, I believe, by <a class="reference external" href="https://github.com/danols">Daniel Sokolowski</a> (<a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48">code here</a>).</p>
 <p>The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
@@ -211,10 +209,6 @@ don't have an authenticated user, there is no sense in checking for any permissi
 <span class="x">    redirect_field_name = REDIRECT_FIELD_NAME</span>
 
 <span class="x">    def dispatch(self, request, *args, **kwargs):</span>
-<span class="x">        original_return_value = super(</span>
-<span class="x">            SuperuserRequiredMixin, self).dispatch(</span>
-<span class="x">            request, *args, **kwargs)</span>
-
 <span class="x">        if not request.user.is_superuser:</span>
 <span class="x">            if self.raise_exception:</span>
 <span class="x">                return HttpResponseForbidden()</span>
@@ -223,7 +217,8 @@ don't have an authenticated user, there is no sense in checking for any permissi
 <span class="x">                tup = self.login_url, self.redirect_field_name, path</span>
 <span class="x">                return HttpResponseRedirect(&quot;%s?%s=%s&quot; % tup)</span>
 
-<span class="x">        return original_return_value</span>
+<span class="x">        return super(SuperuserRequiredMixin, self).dispatch(</span>
+<span class="x">            request, *args, **kwargs)</span>
 </pre></div>
 <p>Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged
 users should have access to.</p>

@@ -102,9 +102,6 @@ PermissionRequiredMixin
         redirect_field_name = REDIRECT_FIELD_NAME
 
         def dispatch(self, request, *args, **kwargs):
-            original_return_value = super(PermissionRequiredMixin, self).dispatch(
-                request, *args, **kwargs)
-
             # Verify class settings
             if self.permission_required == None or len(
                 self.permission_required.split(".")) != 2:
@@ -121,7 +118,8 @@ PermissionRequiredMixin
                     tup = self.login_url, self.redirect_field_name, path
                     return HttpResponseRedirect("%s?%s=%s" % tup)
 
-            return original_return_value
+            return super(PermissionRequiredMixin, self).dispatch(
+                request, *args, **kwargs)
 
 This mixin was originally written, I believe, by `Daniel Sokolowski`_ (`code here`_). 
 
@@ -152,10 +150,6 @@ SuperuserRequiredMixin
         redirect_field_name = REDIRECT_FIELD_NAME
 
         def dispatch(self, request, *args, **kwargs):
-            original_return_value = super(
-                SuperuserRequiredMixin, self).dispatch(
-                request, *args, **kwargs)
-
             if not request.user.is_superuser:
                 if self.raise_exception:
                     return HttpResponseForbidden()
@@ -164,7 +158,8 @@ SuperuserRequiredMixin
                     tup = self.login_url, self.redirect_field_name, path
                     return HttpResponseRedirect("%s?%s=%s" % tup)
 
-            return original_return_value
+            return super(SuperuserRequiredMixin, self).dispatch(
+                request, *args, **kwargs)
 
 Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged 
 users should have access to.

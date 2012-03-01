@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-01T12:24:18Z</updated><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-01T12:24:18Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-01:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-01T15:51:37Z</updated><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-01T15:51:37Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-01:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
 thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still
 lacking but I find a lot of people, especially on &lt;a class="reference external" href="http://reddit.com/r/django"&gt;Reddit&lt;/a&gt;, refuse to use them. For whatever reason, it's a hard
 pill for some to swallow.&lt;/p&gt;
@@ -88,9 +88,6 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 &lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
 
 &lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
-&lt;span class="x"&gt;        original_return_value = super(PermissionRequiredMixin, self).dispatch(&lt;/span&gt;
-&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
-
 &lt;span class="x"&gt;        # Verify class settings&lt;/span&gt;
 &lt;span class="x"&gt;        if self.permission_required == None or len(&lt;/span&gt;
 &lt;span class="x"&gt;            self.permission_required.split(&amp;quot;.&amp;quot;)) != 2:&lt;/span&gt;
@@ -107,7 +104,8 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 &lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
 &lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
 
-&lt;span class="x"&gt;        return original_return_value&lt;/span&gt;
+&lt;span class="x"&gt;        return super(PermissionRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;This mixin was originally written, I believe, by &lt;a class="reference external" href="https://github.com/danols"&gt;Daniel Sokolowski&lt;/a&gt; (&lt;a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48"&gt;code here&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
@@ -129,10 +127,6 @@ don't have an authenticated user, there is no sense in checking for any permissi
 &lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
 
 &lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
-&lt;span class="x"&gt;        original_return_value = super(&lt;/span&gt;
-&lt;span class="x"&gt;            SuperuserRequiredMixin, self).dispatch(&lt;/span&gt;
-&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
-
 &lt;span class="x"&gt;        if not request.user.is_superuser:&lt;/span&gt;
 &lt;span class="x"&gt;            if self.raise_exception:&lt;/span&gt;
 &lt;span class="x"&gt;                return HttpResponseForbidden()&lt;/span&gt;
@@ -141,7 +135,8 @@ don't have an authenticated user, there is no sense in checking for any permissi
 &lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
 &lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
 
-&lt;span class="x"&gt;        return original_return_value&lt;/span&gt;
+&lt;span class="x"&gt;        return super(SuperuserRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged
 users should have access to.&lt;/p&gt;
