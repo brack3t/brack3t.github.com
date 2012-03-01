@@ -47,7 +47,7 @@ This mixin is rather simple and is generally the first inherited class in any of
 there's no need to go any further. If you've used Django before you are probably familiar with the ``login_required`` decorator. 
 All we are doing here is requiring a user to be authenticated to be able to get to this view.
 
-While this doesn't look like much, it frees us up from having to manually overload the dispath method on every single view that 
+While this doesn't look like much, it frees us up from having to manually overload the dispatch method on every single view that 
 requires a user to be authenticated. If that's all that is needed on this view, we just saved 3 lines of code. Example usage below.
 
 .. code-block:: django
@@ -120,7 +120,7 @@ PermissionRequiredMixin
 
             return original_return_value
 
-``This is a mixin that we did not write. Find user who wrote it and give thanks.``
+``This is a mixin that we did not write. Find user who wrote it and give thanks. Also mention it only handles one permission.``
 The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the 
 dispatch method manually on every view that needs to check a permission, we inherit this class and set the 
 ``permission_required`` class attribute on our view. If you don't specify ``permission_required`` on your view, 
@@ -212,6 +212,13 @@ form, otherwise the form gets an unexpected kwarg and everything blows up. Examp
         model = SomeModel
         template_name = "path/to/template.html"
 
+
+UserKwargModelFormMixin
+=======================
+
+``Show usage of the new form mixin``
+
+
 SuccessURLRedirectListMixin
 ===========================
 
@@ -231,8 +238,9 @@ SuccessURLRedirectListMixin
         def get_success_url(self):
             return reverse(self.success_list_url)
 
-SuccessURLRedirectListMixin
-===========================
+
+SetHeadlineMixin
+================
 
 .. code-block:: django
 
