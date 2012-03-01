@@ -75,7 +75,7 @@
     <article>
         <header>
             <h1><span class="slabtext">Our Custom Mixins</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">02-29-2012</a></span>
+            <h6><span class="permalink">Published: <a  href=".././our-custom-mixins.html">03-01-2012</a></span>
 <span class="author">by <strong>Chris</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/CBVs.html">CBVs</a> </span>
 
@@ -178,13 +178,17 @@ requires a user to be authenticated. If that's all that is needed on this view, 
 
 <span class="x">        return original_return_value</span>
 </pre></div>
-<p><tt class="docutils literal">This is a mixin that we did not write. Find user who wrote it and give thanks. Also mention it only handles one permission.</tt>
-The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
-dispatch method manually on every view that needs to check a permission, we inherit this class and set the
-<tt class="docutils literal">permission_required</tt> class attribute on our view. If you don't specify <tt class="docutils literal">permission_required</tt> on your view,
-an <tt class="docutils literal">ImproperlyConfigured</tt> exception is raised reminding you that you haven't set it.</p>
+<p>This mixin was actually written, I believe, by <a class="reference external" href="https://github.com/danols">Daniel Sokolowski</a> (<a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48">code here</a>).</p>
+<p>The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
+dispatch method manually on every view that needs to check for the existence of a permission, we inherit this class
+and set the <tt class="docutils literal">permission_required</tt> class attribute on our view. If you don't specify <tt class="docutils literal">permission_required</tt> on
+your view, an <tt class="docutils literal">ImproperlyConfigured</tt> exception is raised reminding you that you haven't set it.</p>
+<p>The one limitation of this mixin is that it can <strong>only</strong> accept a single permission. It would need to be modified to
+handle more than one. We haven't needed that yet, so this has worked out well for us.</p>
+<p>In our normal use case for this mixin, <tt class="docutils literal">LoginRequiredMixin</tt> comes first, then the <tt class="docutils literal">PermissionRequiredMixin</tt>. If we
+don't have an authenticated user, there is no sense in checking for any permissions.</p>
 <blockquote>
-<span class="label label-info">note</span> If you are using Django's built in auth system, <tt class="docutils literal">superusers</tt> automatically have all permissions in your system.</blockquote>
+<span class="label label-info">note</span> If you are using Django's built in auth system, <tt class="docutils literal">super users</tt> automatically have all permissions in your system.</blockquote>
 </div>
 <div class="section" id="superuserrequiredmixin">
 <h2>SuperuserRequiredMixin</h2>

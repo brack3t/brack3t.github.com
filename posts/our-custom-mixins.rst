@@ -120,16 +120,23 @@ PermissionRequiredMixin
 
             return original_return_value
 
-``This is a mixin that we did not write. Find user who wrote it and give thanks. Also mention it only handles one permission.``
+This mixin was actually written, I believe, by `Daniel Sokolowski`_ (`code here`_). 
+
 The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the 
-dispatch method manually on every view that needs to check a permission, we inherit this class and set the 
-``permission_required`` class attribute on our view. If you don't specify ``permission_required`` on your view, 
-an ``ImproperlyConfigured`` exception is raised reminding you that you haven't set it.
+dispatch method manually on every view that needs to check for the existence of a permission, we inherit this class 
+and set the ``permission_required`` class attribute on our view. If you don't specify ``permission_required`` on 
+your view, an ``ImproperlyConfigured`` exception is raised reminding you that you haven't set it.
+
+The one limitation of this mixin is that it can **only** accept a single permission. It would need to be modified to 
+handle more than one. We haven't needed that yet, so this has worked out well for us.
+
+In our normal use case for this mixin, ``LoginRequiredMixin`` comes first, then the ``PermissionRequiredMixin``. If we 
+don't have an authenticated user, there is no sense in checking for any permissions.
 
     .. role:: info-label
         :class: "label label-info"
 
-    :info-label:`note` If you are using Django's built in auth system, ``superusers`` automatically have all permissions in your system.
+    :info-label:`note` If you are using Django's built in auth system, ``super users`` automatically have all permissions in your system.
 
 SuperuserRequiredMixin
 ======================
@@ -267,3 +274,5 @@ SetHeadlineMixin
 
 .. _GSWD: http://gettingstartedwithdjango.com
 .. _decorating the class: https://docs.djangoproject.com/en/dev/topics/class-based-views/#decorating-the-class
+.. _Daniel Sokolowski: https://github.com/danols
+.. _code here: https://github.com/lukaszb/django-guardian/issues/48
