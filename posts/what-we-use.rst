@@ -33,6 +33,8 @@ We also use Buffergator_ a lot since we tend to jump between a lot of files thro
 
 For eye-candy, we also love the Powerline_ plugin. It gives an awesome statusline effect and makes you feel cool, which is so rare for us nerdy types. Right, guys? Right?
 
+Since we write a lot of different languages, having syntax checking is really important. We use Syntastic_ to check all of our files for erros, and that requires us to have PyFlakes or PyLint installed system-wide, for checking Python. We also install Tidy (from Homebrew) for checking HTML and gjslist (Google's JSLint) or the standard JSLint installed for checking Javascript.
+
 Firefox
 =======
 
@@ -136,3 +138,4 @@ I think that pretty much covers the tools and libraries we end up touching in ou
 .. _DuckDuckGo: http://duckduckgo.com
 .. _gVim: http://www.vim.org/download.php#pc
 .. _macvim: https://github.com/b4winckler/macvim
+.. _Syntastic: https://github.com/scrooloose/syntastic

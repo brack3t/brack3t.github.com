@@ -5,6 +5,8 @@
     <title>brack3t</title>
     <meta name="description" content="">
     <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href=".././feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -12,70 +14,41 @@
     <![endif]-->
 
     <!-- Le styles -->
-    <link href="http://fonts.googleapis.com/css?family=Alegreya:400,900,900italic,400italic,700,700italic" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
     <link href=".././brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/github.css" rel="stylesheet">
     <link href=".././brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <script>
+    var _gaq = _gaq || [];
+    _gaq.push(["_setAccount", "UA-4642386-4"]);
+    _gaq.push(["_trackPageview"]);
+
+    (function() {
+        var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+        ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+	
   </head>
 
   <body>
 
     <div class="container">
-        <div class="row">
-            <div class="span6">
+        <div class="row-fluid">
+            <div class="span5">
                 <header id="logo" role="banner">
                     <h1><a href="/">Brack3t</a></h1>
+                    <h6>Two guys... and Python.</h6>
                 </header>
             </div>
-        </div>
-
-        <div class="row-fluid">
-            <div class="span4" id="main" role="main">
-                <div class="page-header"><h1>brack3t <small>posts</small></h1></div>
-                
-
-
-
-    <article>
-        <header>
-            <h1></h1>
-            <h2>Permalink: <a  href=".././.html">2012-02-20 23:47:15</a>
-by <a class="url fn" href=".././author/Brack3t, aka Kenneth Love and Chris Jones.html">Brack3t, aka Kenneth Love and Chris Jones</a>
-
-
-</h2>
-        </header>
-        <p>{% extends &quot;_post.html&quot; %}</p>
-<p>{%load webdesign %}</p>
-<dl class="docutils">
-<dt>{%hyde</dt>
-<dd>title: Semantic Snakeoil
-created: 2011-10-03 21:31:43</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">./posts/semantic_snakeoil.rst</tt>, line 8)</p>
-Definition list ends without a blank line; unexpected unindent.</div>
-<p>%}</p>
-<p>{% block article %}
-{% article %}</p>
-<p>{% restructuredtext %}</p>
-<div class="span2 offset2 figure">
-<img alt="Semantic All The Thing" src="{{site.url}}/media/img/semantic.png" />
-</div>
-<p>For years now, we've been told that we should always use semantic class ...</p> <a class="btn primary xsmall" href=".././.html">more…</a>
-    </article>
-
-
-
-
-
-
-            </div>
             <aside class="span2" id="sidebar" role="complementary">
-                <h2>Our menu</h2>
                 <nav>
-                    <ul>
+                    <ul class="unstyled">
                         
                         
+                            
+                            <li><a href=".././pages/about-us.html">About</a></li>
                             
                         
                         <li><a href=".././pages/projects.html">Projects</a></li>
@@ -85,6 +58,34 @@ Definition list ends without a blank line; unexpected unindent.</div>
                 </nav>
             </aside>
         </div>
+
+        <div class="row-fluid">
+            <div class="span7" id="main" role="main">
+                
+                
+
+
+
+    <article>
+        <header>
+            <h1><a href=".././.html" class="slabtext"></a></h1>
+            <h6><span class="permalink">Published: <a  href=".././.html">03-02-2012</a></span>
+<span class="author">by <strong>Brack3t, aka Kenneth Love and Chris Jones</strong></span>
+
+
+</h6>
+        </header>
+         <a class="" href=".././.html">more &rarr;</a>
+    </article>
+
+
+
+
+
+
+            </div>
+        </div>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href=".././feeds/all.atom.xml">ATOM feed</a></p></footer>
     </div> <!-- /container -->
 
     <!-- Le javascript
@@ -94,10 +95,12 @@ Definition list ends without a blank line; unexpected unindent.</div>
     <script src=".././brack3t-theme/assets/jquery-1.7.1.min.js"></script>
     <script src=".././brack3t-theme/assets/jquery.slabtext.min.js"></script>
     <script src=".././brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src=".././brack3t-theme/assets/highlight.pack.js"></script>
     <script>
         $(function() {
             $(".slabtext").slabText();
             $(".fittext").fitText(0.8);
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
         });
     </script>
   </body>
