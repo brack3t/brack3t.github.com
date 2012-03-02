@@ -6,6 +6,8 @@ Our Custom Mixins
 :category: django
 :tags: django, CBVs
 
+**UPDATE**: We've released a `Github repo`_ and a `PyPI package`_ with our mixins. Feel free to fork and submit new ones through a pull-request.
+
 Let's just start out and say it, **Class Based Views**. Ooohhhh. Unfortunately the topic of class based views is 
 thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still 
 lacking but I find a lot of people, especially on Reddit_, refuse to use them. For whatever reason, it's a hard 
@@ -357,3 +359,5 @@ any questions, leave a comment or hit us up on Twitter.
 .. _code here: https://github.com/lukaszb/django-guardian/issues/48
 .. _Reddit: http://reddit.com/r/django
 .. _CRUD: http://en.wikipedia.org/wiki/Create,_read,_update_and_delete
+.. _Github repo: https://github.com/brack3t/django-braces
+.. _PyPI package: http://pypi.python.org/pypi/braces/0.1.0
