@@ -360,4 +360,4 @@ any questions, leave a comment or hit us up on Twitter.
 .. _Reddit: http://reddit.com/r/django
 .. _CRUD: http://en.wikipedia.org/wiki/Create,_read,_update_and_delete
 .. _Github repo: https://github.com/brack3t/django-braces
-.. _PyPI package: http://pypi.python.org/pypi/braces/0.1.0
+.. _PyPI package: http://pypi.python.org/pypi/django-braces/0.1.0
