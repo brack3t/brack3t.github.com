@@ -4,15 +4,12 @@ What We Use
 
 :tags: workflow, tools
 :author: Kenneth
-:status: draft
 
 We've noticed several people publishing lists of what they use to do their work lately, so we thought we'd join in.
 Below are the tools we use nearly every day to do our work. If you don't know, our work is the entire stack,
 from setting up servers, to Django_ and Python_ programming, to front-end web development and design. Obviously,
 with such a large area of work, we end up using a lot of different products and libraries, so, below is a list of our
 most common items.
-
-Another test on the new server.
 
 .. contents::
     :depth: 1
