@@ -129,7 +129,7 @@ I think that pretty much covers the tools and libraries we end up touching in ou
 .. _Tmuxinator: https://github.com/aziz/tmuxinator
 .. _Homebrew: http://mxcl.github.com/homebrew/
 .. _DynDNS: http://dyndns.org
-.. _Balsamiq: http://mxcl.github.com/homebrew/
+.. _Balsamiq: http://www.balsamiq.com/
 .. _Nginx: http://nginx.org
 .. _BackboneJS: http://backbonejs.org
 .. _Tastypie: http://tastypieapi.org
