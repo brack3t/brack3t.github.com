@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block indextitle %}{% endblock %}
+{% block windowtitle %}{{ article.title }} [ {{ super() }} ]{% endblock %}
 {% block content %}
     <article>
         <header>

@@ -1,13 +1,13 @@
-===============================================
-Do Form Fields Need to Reflect Their Model? No!
-===============================================
+===========================
+User-friendlier model forms
+===========================
 
 :author: Kenneth
 :category: django
 :tags: django, python, forms, models
 :status: draft
 
-Recently, in our large client project, we had need of fields that accepted multiple types of input. For example, the ``rent`` field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like "call for details" or "on approved credit". Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.
+Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the ``rent`` field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like "call for details" or "on approved credit". Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.
 
 Model
 =====

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Do Form Fields Need to Reflect Their Model? No! [ brack3t ]</title>
+    <title>User-friendlier model forms [ brack3t ]</title>
     <meta name="description" content="">
     <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +31,7 @@
 </script>
 	
 <script type="text/javascript">
-	var disqus_identifier = "do-form-fields-need-to-reflect-their-model-no.html";
+	var disqus_identifier = "user-friendlier-model-forms.html";
 	(function() {
 		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
 		dsq.src = 'http://brack3t.disqus.com/embed.js';
@@ -74,14 +74,14 @@
                 
     <article>
         <header>
-            <h1><span class="slabtext">Do Form Fields Need to Reflect Their Model? No!</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././do-form-fields-need-to-reflect-their-model-no.html">03-11-2012</a></span>
+            <h1><span class="slabtext">User-friendlier model forms</span></h1>
+            <h6><span class="permalink">Published: <a  href=".././user-friendlier-model-forms.html">03-12-2012</a></span>
 <span class="author">by <strong>Kenneth</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/python.html">python</a> <a href=".././tag/forms.html">forms</a> <a href=".././tag/models.html">models</a> </span>
 
 </h6>
         </header>
-        <p>Recently, in our large client project, we had need of fields that accepted multiple types of input. For example, the <tt class="docutils literal">rent</tt> field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &quot;call for details&quot; or &quot;on approved credit&quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.</p>
+        <p>Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the <tt class="docutils literal">rent</tt> field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &quot;call for details&quot; or &quot;on approved credit&quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.</p>
 <div class="section" id="model">
 <h2>Model</h2>
 <p>Let's go over our <tt class="docutils literal">Rent</tt> model first. It's an abstract model so we can use it in multiple places (we have more than one logical model in the system that needs to deal with rent, this way we can use it multiple places without having to hold on to a huge amount of joins). We have several other abstract models that perform the same actions as our <tt class="docutils literal">Rent</tt> model, but I won't show them here.</p>
