@@ -5,7 +5,6 @@ User-friendlier model forms
 :author: Kenneth
 :category: django
 :tags: django, python, forms, models
-:status: draft
 
 Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the ``rent`` field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like "call for details" or "on approved credit". Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.
 
@@ -66,7 +65,7 @@ Let's go over our ``Rent`` model first. It's an abstract model so we can use it 
 
             return response
 
-The one "gotcha" here, that you may not get right away, is the ``super(Rent, self).clean()`` at the top of the ``clean()``. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend ``Rent`` and the other extended models (as mentioned, we have several models created and use this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of ``rent`` that we can call on the extending models to get the computed rent value.
+The one "gotcha" here, that you may not get right away, is the ``super(Rent, self).clean()`` at the top of the ``clean()``. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend ``Rent`` and the other extended models (as mentioned, we have several models created and used this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of ``rent`` that we can call on the extending models to get the computed rent value.
 
 That property doesn't do anything really interesting except return a value based on the field values. The clean is a little more interesting for how it sets ``rent_low`` to 0 and empties out ``rent_high`` when their values no longer matter.
 
@@ -140,7 +139,7 @@ Let's go over these one at a time.
         if not any([cleaned_data.get(f, None) for f in fields]):
             form.errors[field] = form.error_class([error_msg])
 
-Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The ``any`` method from the Python standard library is amazing useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.
+Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The ``any`` method from the Python standard library is amazingly useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.
 
 Next is the ``split_ranges`` field.
 
@@ -161,7 +160,7 @@ Next is the ``split_ranges`` field.
 
 This small little method takes our unified field in the form and splits it out into the ``high`` and ``low`` fields on the model. We feel like doing ``__setattr__`` is a little dirty, but it solves the problem without us having to pass in a huge number of fields. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.
 
-Also, notice how we use the ``ValueError`` that'll be throw by not having a ``high`` value to set on the form to trigger it being set to ``None``, exactly what our model is expecting already.
+Also, notice how we use the ``ValueError`` that'll be thrown by not having a ``high`` value to set on the form to trigger it being set to ``None``, exactly what our model is expecting already.
 
 .. code-block:: django
 
@@ -181,7 +180,7 @@ Also, notice how we use the ``ValueError`` that'll be throw by not having a ``hi
                 form.fields[field].initial = form.instance.__getattribute__(
                     field + "_low")
 
-This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered. Again, ``__getattribute__`` feels a little dirty, using a marked-as-private method and all, but it solves the problem at hand. I suppose we could have created our own form class, adding in ``setattribute`` and ``getattribute`` methods that just call these on their own, but that didn't seem amazingly necessary.
+This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered. Again, ``__getattribute__`` feels a little dirty, using a marked-as-private method and all, but it solves the problem at hand. I suppose we could have created our own form class, adding in ``setattribute`` and ``getattribute`` methods that just call these on their own, but that didn't seem necessary.
 
 So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.
 

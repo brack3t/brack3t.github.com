@@ -1,5 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-02T13:30:34Z</updated><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-02T13:30:34Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-02:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;: We've released a &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github repo&lt;/a&gt; and a &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0"&gt;PyPI package&lt;/a&gt; with our mixins. Feel free to fork and submit new ones through a pull-request.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/django.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-12T11:00:38Z</updated><entry><title>User-friendlier model forms</title><link href="http://brack3t.com/user-friendlier-model-forms.html" rel="alternate"></link><updated>2012-03-12T11:00:38Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-03-12:/user-friendlier-model-forms.html/</id><summary type="html">&lt;p&gt;Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &amp;quot;call for details&amp;quot; or &amp;quot;on approved credit&amp;quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.&lt;/p&gt;
+&lt;div class="section" id="model"&gt;
+&lt;h2&gt;Model&lt;/h2&gt;
+&lt;p&gt;Let's go over our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model first. It's an abstract model so we can use it in multiple places (we have more than one logical model in the system that needs to deal with rent, this way we can use it multiple places without having to hold on to a huge amount of joins). We have several other abstract models that perform the same actions as our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model, but I won't show them here.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.core.exceptions import ValidationError&lt;/span&gt;
+&lt;span class="x"&gt;from django.db import models&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class Rent(models.Model):&lt;/span&gt;
+&lt;span class="x"&gt;    rent_low = models.PositiveIntegerField()&lt;/span&gt;
+&lt;span class="x"&gt;    rent_high = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_percent_income = models.FloatField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_oac = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_call_for_details = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_up_to = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
+
+&lt;span class="x"&gt;    def clean(self):&lt;/span&gt;
+&lt;span class="x"&gt;        super(Rent, self).clean()&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_high and self.rent_high &amp;lt;= self.rent_low:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ValidationError(&amp;quot;Invalid rent range.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income or self.rent_call_for_details or \&lt;/span&gt;
+&lt;span class="x"&gt;           self.rent_up_to:&lt;/span&gt;
+
+&lt;span class="x"&gt;            self.rent_low = 0&lt;/span&gt;
+&lt;span class="x"&gt;            self.rent_high = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def rent(self):&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_call_for_details:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Call for details.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_up_to:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Up to $%d&amp;quot; % self.rent_up_to&lt;/span&gt;
+
+&lt;span class="x"&gt;        response = &amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%g%% of income.&amp;quot; % self.rent_percent_income&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response +=  u&amp;quot;%d-%d&amp;quot; % (self.rent_low, self.rent_high)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_low &amp;gt; 0 and not self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%d&amp;quot; % self.rent_low&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_oac:&lt;/span&gt;
+&lt;span class="x"&gt;            response += &amp;quot; On approved credit.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        return response&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The one &amp;quot;gotcha&amp;quot; here, that you may not get right away, is the &lt;tt class="docutils literal"&gt;super(Rent, &lt;span class="pre"&gt;self).clean()&lt;/span&gt;&lt;/tt&gt; at the top of the &lt;tt class="docutils literal"&gt;clean()&lt;/tt&gt;. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; and the other extended models (as mentioned, we have several models created and used this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; that we can call on the extending models to get the computed rent value.&lt;/p&gt;
+&lt;p&gt;That property doesn't do anything really interesting except return a value based on the field values. The clean is a little more interesting for how it sets &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; to 0 and empties out &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; when their values no longer matter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="form"&gt;
+&lt;h2&gt;Form&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;from django.core.validators import RegexValidator
+
+[...]
+
+integer_range = RegexValidator(
+    regex=re.compile(r&amp;quot;^[0-9]*(-[0-9]*)?$&amp;quot;),
+    message=&amp;quot;Please enter a valid number, or a range in the format: 100-200&amp;quot;,
+    code=&amp;quot;invalid&amp;quot;
+)
+
+
+class FloorplanBaseForm(CommunityKwargModelFormMixin, UserKwargModelFormMixin,
+    forms.ModelForm):
+
+    rent = forms.CharField(max_length=75, required=False,
+        validators=[integer_range])
+
+    class Meta:
+        model = Floorplan
+
+
+    def __init__(self, *args, **kwargs):
+        super(FloorplanBaseForm, self).__init__(*args, **kwargs)
+
+        [...]
+
+        if self.instance.pk:
+            set_custom_fields(self, [&amp;quot;rent&amp;quot;, &amp;quot;deposit&amp;quot;, &amp;quot;promo&amp;quot;, &amp;quot;sq_ft&amp;quot;])
+
+    def clean(self):
+        super(FloorplanBaseForm, self).clean()
+        data = self.cleaned_data
+
+        [...]
+
+        if data.get(&amp;quot;rent&amp;quot;, None) and not data[&amp;quot;rent_call_for_details&amp;quot;] and not\
+            data[&amp;quot;rent_percent_income&amp;quot;] and not data[&amp;quot;rent_up_to&amp;quot;]:
+
+            split_ranges(self, &amp;quot;rent&amp;quot;)
+
+        clean_custom_fields(self, data, [&amp;quot;rent&amp;quot;, &amp;quot;rent_call_for_details&amp;quot;,
+            &amp;quot;rent_up_to&amp;quot;, &amp;quot;rent_percent_income&amp;quot;],
+            &amp;quot;You must enter a value for rent.&amp;quot;, &amp;quot;rent&amp;quot;)
+
+        return data
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I've removed bits of the form that deal with other fields like &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; since I'm not showing anything about them. This is, more or less, an abstract form. We never render it, but we extend it to support our specific floorplan types. In those extending forms, we tell &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; to be excluded. In this form, though, we provide a single &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field that has a regular expression validator on it to ensure that it contains an interger or two integers separated by a hyphen. This lets the users enter data as more-or-less natural text instead of having to tab through a bunch of fields or enter the data in a weird format.&lt;/p&gt;
+&lt;p&gt;You'll notice three custom methods being called, &lt;tt class="docutils literal"&gt;set_custom_fields&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;clean_custom_fields&lt;/tt&gt;. We'll cover them next.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="custom-methods"&gt;
+&lt;h2&gt;Custom methods&lt;/h2&gt;
+&lt;p&gt;Let's go over these one at a time.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def clean_custom_fields(form, cleaned_data, fields, error_msg, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Make sure at least one required option has been supplied.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    if not any([cleaned_data.get(f, None) for f in fields]):&lt;/span&gt;
+&lt;span class="x"&gt;        form.errors[field] = form.error_class([error_msg])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The &lt;tt class="docutils literal"&gt;any&lt;/tt&gt; method from the Python standard library is amazingly useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.&lt;/p&gt;
+&lt;p&gt;Next is the &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt; field.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def split_ranges(form, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Split custom range fields into model fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    try:&lt;/span&gt;
+&lt;span class="x"&gt;        low, high = form.cleaned_data[field].split(&amp;quot;-&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;        form.instance.__setattr__(field + &amp;quot;_low&amp;quot;, int(low))&lt;/span&gt;
+&lt;span class="x"&gt;        form.instance.__setattr__(field + &amp;quot;_high&amp;quot;, int(high))&lt;/span&gt;
+&lt;span class="x"&gt;    except ValueError:&lt;/span&gt;
+&lt;span class="x"&gt;        form.instance.__setattr__(field + &amp;quot;_low&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            int(form.cleaned_data[field]))&lt;/span&gt;
+&lt;span class="x"&gt;        form.instance.__setattr__(field + &amp;quot;_high&amp;quot;, None)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This small little method takes our unified field in the form and splits it out into the &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;low&lt;/tt&gt; fields on the model. We feel like doing &lt;tt class="docutils literal"&gt;__setattr__&lt;/tt&gt; is a little dirty, but it solves the problem without us having to pass in a huge number of fields. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.&lt;/p&gt;
+&lt;p&gt;Also, notice how we use the &lt;tt class="docutils literal"&gt;ValueError&lt;/tt&gt; that'll be thrown by not having a &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; value to set on the form to trigger it being set to &lt;tt class="docutils literal"&gt;None&lt;/tt&gt;, exactly what our model is expecting already.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def set_custom_fields(form, fields):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Combine low/high fields into the range fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    for field in fields:&lt;/span&gt;
+&lt;span class="x"&gt;        if form.instance.__getattribute__(field + &amp;quot;_high&amp;quot;):&lt;/span&gt;
+&lt;span class="x"&gt;            form.fields[field].initial = u&amp;quot;%d-%d&amp;quot; % (&lt;/span&gt;
+&lt;span class="x"&gt;                form.instance.__getattribute__(field + &amp;quot;_low&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;                form.instance.__getattribute__(field + &amp;quot;_high&amp;quot;))&lt;/span&gt;
+
+&lt;span class="x"&gt;        if form.instance.__getattribute__(field + &amp;quot;_low&amp;quot;) &amp;gt; 0 and not \&lt;/span&gt;
+&lt;span class="x"&gt;            form.instance.__getattribute__(field + &amp;quot;_high&amp;quot;):&lt;/span&gt;
+
+&lt;span class="x"&gt;            form.fields[field].initial = form.instance.__getattribute__(&lt;/span&gt;
+&lt;span class="x"&gt;                field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered. Again, &lt;tt class="docutils literal"&gt;__getattribute__&lt;/tt&gt; feels a little dirty, using a marked-as-private method and all, but it solves the problem at hand. I suppose we could have created our own form class, adding in &lt;tt class="docutils literal"&gt;setattribute&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;getattribute&lt;/tt&gt; methods that just call these on their own, but that didn't seem necessary.&lt;/p&gt;
+&lt;p&gt;So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.&lt;/p&gt;
+&lt;p&gt;Hopefully this gives you some ideas on how to make forms more user-friendly while maintaining solid model data on the backend. If you see something we could be doing better, please let us know in the comments.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="python"></category><category term="forms"></category><category term="models"></category></entry><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-02T13:30:34Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-02:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;: We've released a &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github repo&lt;/a&gt; and a &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0"&gt;PyPI package&lt;/a&gt; with our mixins. Feel free to fork and submit new ones through a pull-request.&lt;/p&gt;
 &lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
 thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still
 lacking but I find a lot of people, especially on &lt;a class="reference external" href="http://reddit.com/r/django"&gt;Reddit&lt;/a&gt;, refuse to use them. For whatever reason, it's a hard
