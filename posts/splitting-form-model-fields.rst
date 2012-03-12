@@ -151,12 +151,11 @@ Next is the ``split_ranges`` field.
         """
         try:
             low, high = form.cleaned_data[field].split("-")
-            form.instance.__setattr__(field + "_low", int(low))
-            form.instance.__setattr__(field + "_high", int(high))
+            setattr(form.instance, field + "_low", int(low))
+            setattr(form.instance, field + "_high", int(high))
         except ValueError:
-            form.instance.__setattr__(field + "_low",
-                int(form.cleaned_data[field]))
-            form.instance.__setattr__(field + "_high", None)
+            setattr(form.instance, field + "_low", int(form.cleaned_data[field]))
+            setattr(form.instance, field + "_high", None)
 
 This small little method takes our unified field in the form and splits it out into the ``high`` and ``low`` fields on the model. We feel like doing ``__setattr__`` is a little dirty, but it solves the problem without us having to pass in a huge number of fields. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.
 
@@ -169,19 +168,21 @@ Also, notice how we use the ``ValueError`` that'll be thrown by not having a ``h
         Combine low/high fields into the range fields.
         """
         for field in fields:
-            if form.instance.__getattribute__(field + "_high"):
+            if getattr(form.instance, field + "_high", None):
                 form.fields[field].initial = u"%d-%d" % (
-                    form.instance.__getattribute__(field + "_low"),
-                    form.instance.__getattribute__(field + "_high"))
+                    getattr(form.instance, field + "_low")
+                    getattr(form.instance, field + "_high")
+                )
 
-            if form.instance.__getattribute__(field + "_low") > 0 and not \
-                form.instance.__getattribute__(field + "_high"):
+            if getattr(form.instance, field + "_low", None) > 0 and not \
+                getattr(form.instance, field + "_high", None):
 
-                form.fields[field].initial = form.instance.__getattribute__(
-                    field + "_low")
+                form.fields[field].initial = gettar(form.instance, field + "_low")
 
 This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered. Again, ``__getattribute__`` feels a little dirty, using a marked-as-private method and all, but it solves the problem at hand. I suppose we could have created our own form class, adding in ``setattribute`` and ``getattribute`` methods that just call these on their own, but that didn't seem necessary.
 
 So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.
 
 Hopefully this gives you some ideas on how to make forms more user-friendly while maintaining solid model data on the backend. If you see something we could be doing better, please let us know in the comments.
+
+Thanks to Kevin Diale for pointing out our oversight on ``getattr``/``setattr``.
