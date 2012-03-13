@@ -157,7 +157,7 @@ Next is the ``split_ranges`` field.
             setattr(form.instance, field + "_low", int(form.cleaned_data[field]))
             setattr(form.instance, field + "_high", None)
 
-This small little method takes our unified field in the form and splits it out into the ``high`` and ``low`` fields on the model. We feel like doing ``__setattr__`` is a little dirty, but it solves the problem without us having to pass in a huge number of fields. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.
+This small little method takes our unified field in the form and splits it out into the ``high`` and ``low`` fields on the model. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.
 
 Also, notice how we use the ``ValueError`` that'll be thrown by not having a ``high`` value to set on the form to trigger it being set to ``None``, exactly what our model is expecting already.
 
@@ -179,7 +179,7 @@ Also, notice how we use the ``ValueError`` that'll be thrown by not having a ``h
 
                 form.fields[field].initial = gettar(form.instance, field + "_low")
 
-This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered. Again, ``__getattribute__`` feels a little dirty, using a marked-as-private method and all, but it solves the problem at hand. I suppose we could have created our own form class, adding in ``setattribute`` and ``getattribute`` methods that just call these on their own, but that didn't seem necessary.
+This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered.
 
 So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.
 
