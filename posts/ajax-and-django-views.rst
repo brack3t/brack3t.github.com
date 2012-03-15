@@ -5,7 +5,6 @@ Ajax and Django Views
 :author: Chris and Kenneth
 :category: django
 :tags: django, ajax, jquery
-:status: draft
 
 It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by *not* having a page load. We're also big fans of `django-tastypie`_ but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.
 
