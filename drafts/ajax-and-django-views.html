@@ -75,18 +75,20 @@
     <article>
         <header>
             <h1><span class="slabtext">Ajax and Django Views</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././ajax-and-django-views.html">03-12-2012</a></span>
-<span class="author">by <strong>Chris</strong></span>
+            <h6><span class="permalink">Published: <a  href=".././ajax-and-django-views.html">03-14-2012</a></span>
+<span class="author">by <strong>Chris and Kenneth</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/ajax.html">ajax</a> <a href=".././tag/jquery.html">jquery</a> </span>
 
 </h6>
         </header>
-        <div class="section" id="django-automatic-csrf">
+        <p>It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by <em>not</em> having a page load. We're also big fans of <a class="reference external" href="http://tastypieapi.org">django-tastypie</a> but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.</p>
+<div class="section" id="django-automatic-csrf">
 <h2>Django automatic CSRF</h2>
-<p><a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax">https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax</a></p>
+<p>To start things off, put <a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax">this bit of Javascript</a> from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows you to ignore the CSRF token for AJAX views. While this sounds more dangerous, the same-origin policy of AJAX requests should provide a decent amount of protection already. If you're really concerned, don't use this script and fetch a new CSRF token every time you submit a form, basically rebuilding the HTML form after every submission.</p>
 </div>
 <div class="section" id="ajax-form-field-errors">
-<h2>Ajax &amp; Form Field Errors</h2>
+<h2>AJAX &amp; Form Field Errors</h2>
+<p>Before we get to the Django side, there are a few small scripts that we recycle on every project.</p>
 <div class="highlight"><pre><span class="kd">function</span> <span class="nx">apply_form_field_error</span><span class="p">(</span><span class="nx">fieldname</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">input</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#id_&quot;</span> <span class="o">+</span> <span class="nx">fieldname</span><span class="p">),</span>
         <span class="nx">container</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#div_id_&quot;</span> <span class="o">+</span> <span class="nx">fieldname</span><span class="p">),</span>
@@ -100,8 +102,10 @@
     <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.ajax-error&quot;</span><span class="p">,</span> <span class="nx">$</span><span class="p">(</span><span class="nx">form</span><span class="p">)).</span><span class="nx">remove</span><span class="p">();</span>
     <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.error&quot;</span><span class="p">,</span> <span class="nx">$</span><span class="p">(</span><span class="nx">form</span><span class="p">)).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">);</span>
 <span class="p">}</span>
-
-<span class="kd">function</span> <span class="nx">django_message</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">level</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+<p>These two functions are pretty self-explanatory, but I'll go over them anyway. The first, <tt class="docutils literal">apply_form_field_error</tt>, takes a field name and an error, finds the field on the page and sets the error text to the passed-in error. Our selectors here take advantage of how <a class="reference external" href="http://twitter.github.com/bootstrap">Twitter Bootstrap</a> renders forms, so you may need to change the selectors to match your own markup. The second, <tt class="docutils literal">clear_form_field_errors</tt>, removes the above text and classes, basicaly resetting the form. It's important to run this script before every AJAX submission so you don't get doubled-up errors if someone submits invalid data on the same field twice. You could add it to jQuery's <tt class="docutils literal">beforeSend</tt> if you don't want to have to think about it.</p>
+<p>There are a couple more useful utility functions that we thought might be useful for some people.</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">django_message</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">level</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">levels</span> <span class="o">=</span> <span class="p">{</span>
         <span class="nx">warning</span><span class="o">:</span> <span class="s1">&#39;alert&#39;</span><span class="p">,</span>
         <span class="nx">error</span><span class="o">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
@@ -128,28 +132,58 @@
     <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#message_area&quot;</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="nx">html</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
+<p>These two scripts mirror Django's <tt class="docutils literal">messages</tt> app's functionality. Both use <a class="reference external" href="http://handlebarsjs.com">Handlebars</a> to render the template, but you could use any Javascript templating library you'd like. Our templates look like so:</p>
+<div class="highlight"><pre>{% load verbatim_tag %}
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">&quot;message_template&quot;</span> <span class="na">type=</span><span class="s">&quot;text/x-handlebars-template&quot;</span><span class="nt">&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">verbatim</span> <span class="o">%</span><span class="p">}</span>
+    <span class="o">&lt;</span><span class="nx">div</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;alert alert-{{tags}} fade in&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">alert</span><span class="o">=</span><span class="s2">&quot;{{tags}}&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">a</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;close&quot;</span> <span class="nx">title</span><span class="o">=</span><span class="s2">&quot;Close&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;#&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">dismiss</span><span class="o">=</span><span class="s2">&quot;alert&quot;</span><span class="o">&gt;&amp;</span><span class="nx">times</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/a&gt;</span>
+        <span class="p">{{{</span><span class="nx">message</span><span class="p">}}}</span>
+    <span class="o">&lt;</span><span class="err">/div&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">endverbatim</span><span class="o">%</span><span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">&quot;message_block_template&quot;</span> <span class="na">type=</span><span class="s">&quot;text/x-handlebars-template&quot;</span><span class="nt">&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">verbatim</span> <span class="o">%</span><span class="p">}</span>
+    <span class="o">&lt;</span><span class="nx">div</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;alert alert-block alert-{{level}} fade in&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">a</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;close&quot;</span> <span class="nx">title</span><span class="o">=</span><span class="s2">&quot;Close&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;#&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">dismiss</span><span class="o">=</span><span class="s2">&quot;alert&quot;</span><span class="o">&gt;&amp;</span><span class="nx">times</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/a&gt;</span>
+        <span class="p">{{{</span><span class="nx">body</span><span class="p">}}}</span>
+    <span class="o">&lt;</span><span class="err">/div&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">endverbatim</span> <span class="o">%</span><span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+</pre></div>
+<p>The <tt class="docutils literal">verbatim</tt> <a class="reference external" href="https://gist.github.com/629508">tag</a> there is from Eric Florenzano and makes including Javascript templates in your Django-parsed HTML really easy. We include these in a base template and provide a spot in the rest of the document to attach them to. Again, this is based largely on Twitter Bootstrap, so your markup will vary.</p>
 </div>
 <div class="section" id="ajax-views">
 <h2>Ajax Views</h2>
-<div class="highlight"><pre><span class="x">class NavigationItemAjaxSortView(LoginRequiredMixin, PermissionRequiredMixin,</span>
-<span class="x">    View):</span>
+<p>So now let's get down to the good stuff. The following view is very generic and only shows the basic concept, but we're sure you'll get the gist of it.</p>
+<div class="highlight"><pre><span class="x">from django.http import HttpResponse, HttpResponseBadRequest</span>
+<span class="x">from django.utils import simplejson as json</span>
+<span class="x">from django.views.generic import UpdateView</span>
 
-<span class="x">    permission_required = &quot;navigations.change_navigation&quot;</span>
+<span class="x">from braces.views import LoginRequiredMixin, PermissionRequiredMixin</span>
 
-<span class="x">    def post(self, request):</span>
-<span class="x">        pk = request.POST.get(&quot;pk&quot;, None)</span>
+<span class="x">class PonyAjaxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):</span>
 
-<span class="x">        if pk:</span>
-<span class="x">            nav_item = get_object_or_404(NavigationItem, pk=pk)</span>
-<span class="x">            form = NavigationItemForm(request.POST, instance=nav_item)</span>
-<span class="x">            if form.is_valid():</span>
-<span class="x">                form.save()</span>
-<span class="x">                return HttpResponse(json.dumps(&quot;success&quot;),</span>
-<span class="x">                    mimetype=&quot;application/json&quot;)</span>
-<span class="x">            return HttpResponseForbidden(json.dumps(form.errors),</span>
+<span class="x">    form_class = PonyForm</span>
+<span class="x">    model = Pony</span>
+<span class="x">    permission_required = &quot;ponies.change_pony&quot;</span>
+
+<span class="x">    def form_valid(self, form):</span>
+<span class="x">        self.object = form.save()</span>
+<span class="x">        if self.request.is_ajax():</span>
+<span class="x">            return HttpResponse(json.dumps(&quot;success&quot;),</span>
 <span class="x">                mimetype=&quot;application/json&quot;)</span>
-<span class="x">        raise Http404</span>
+<span class="x">        return super(PonyAjaxUpdateView, self).form_valid(form)</span>
+
+<span class="x">    def form_invalid(self, form):</span>
+<span class="x">        if self.request.is_ajax():</span>
+<span class="x">            return HttpResponseBadRequest(json.dumps(form.errors),</span>
+<span class="x">                mimetype=&quot;application/json&quot;)</span>
+<span class="x">        return super(PonyAjaxUpdateView, self).form_invalid(form)</span>
 </pre></div>
+<p>Again, nothing special in the view. We use an <tt class="docutils literal">UpdateView</tt> so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our <tt class="docutils literal">form_valid</tt> method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard <tt class="docutils literal">HttpResponse</tt> or one with a message, like demonstrated above, is enough. If your view creates new objects or deletes old ones, returning proper status codes, like <tt class="docutils literal">201</tt> for <tt class="docutils literal">Created</tt> is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.</p>
+<p>Similarly, above, if the form is invalid, we serialize the form errors (note: not the <tt class="docutils literal">non_form_errors()</tt> errors) and send them back to the view. The script we wrote above, <tt class="docutils literal">apply_form_field_error</tt> can be called in a loop for each error in the list and update your form so the users know what they did wrong.</p>
 </div>
 
     </article>

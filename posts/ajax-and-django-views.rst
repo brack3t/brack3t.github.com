@@ -2,20 +2,23 @@
 Ajax and Django Views
 =====================
 
-:author: Chris
+:author: Chris and Kenneth
 :category: django
 :tags: django, ajax, jquery
 :status: draft
+
+It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by *not* having a page load. We're also big fans of `django-tastypie`_ but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.
 
 
 Django automatic CSRF
 =====================
 
-https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+To start things off, put `this bit of Javascript`_ from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows you to ignore the CSRF token for AJAX views. While this sounds more dangerous, the same-origin policy of AJAX requests should provide a decent amount of protection already. If you're really concerned, don't use this script and fetch a new CSRF token every time you submit a form, basically rebuilding the HTML form after every submission.
 
-
-Ajax & Form Field Errors
+AJAX & Form Field Errors
 ========================
+
+Before we get to the Django side, there are a few small scripts that we recycle on every project.
 
 .. code-block:: javascript
 
@@ -32,6 +35,12 @@ Ajax & Form Field Errors
         $(".ajax-error", $(form)).remove();
         $(".error", $(form)).removeClass("error");
     }
+
+These two functions are pretty self-explanatory, but I'll go over them anyway. The first, ``apply_form_field_error``, takes a field name and an error, finds the field on the page and sets the error text to the passed-in error. Our selectors here take advantage of how `Twitter Bootstrap`_ renders forms, so you may need to change the selectors to match your own markup. The second, ``clear_form_field_errors``, removes the above text and classes, basicaly resetting the form. It's important to run this script before every AJAX submission so you don't get doubled-up errors if someone submits invalid data on the same field twice. You could add it to jQuery's ``beforeSend`` if you don't want to have to think about it.
+
+There are a couple more useful utility functions that we thought might be useful for some people.
+
+.. code-block:: javascript
 
     function django_message(msg, level) {
         var levels = {
@@ -60,27 +69,69 @@ Ajax & Form Field Errors
         $("#message_area").append(html);
     }
 
+These two scripts mirror Django's ``messages`` app's functionality. Both use Handlebars_ to render the template, but you could use any Javascript templating library you'd like. Our templates look like so:
+
+.. code-block:: html
+
+    {% load verbatim_tag %}
+    <script id="message_template" type="text/x-handlebars-template">
+        {% verbatim %}
+        <div class="alert alert-{{tags}} fade in" data-alert="{{tags}}">
+            <a class="close" title="Close" href="#" data-dismiss="alert">&times;</a>
+            {{{message}}}
+        </div>
+        {% endverbatim%}
+    </script>
+
+    <script id="message_block_template" type="text/x-handlebars-template">
+        {% verbatim %}
+        <div class="alert alert-block alert-{{level}} fade in">
+            <a class="close" title="Close" href="#" data-dismiss="alert">&times;</a>
+            {{{body}}}
+        </div>
+        {% endverbatim %}
+    </script>
+
+The ``verbatim`` tag_ there is from Eric Florenzano and makes including Javascript templates in your Django-parsed HTML really easy. We include these in a base template and provide a spot in the rest of the document to attach them to. Again, this is based largely on Twitter Bootstrap, so your markup will vary.
 
 Ajax Views
 ==========
 
+So now let's get down to the good stuff. The following view is very generic and only shows the basic concept, but we're sure you'll get the gist of it.
+
 .. code-block:: django
 
-    class NavigationItemAjaxSortView(LoginRequiredMixin, PermissionRequiredMixin,
-        View):
+    from django.http import HttpResponse, HttpResponseBadRequest
+    from django.utils import simplejson as json
+    from django.views.generic import UpdateView
 
-        permission_required = "navigations.change_navigation"
+    from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
-        def post(self, request):
-            pk = request.POST.get("pk", None)
+    class PonyAjaxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
 
-            if pk:
-                nav_item = get_object_or_404(NavigationItem, pk=pk)
-                form = NavigationItemForm(request.POST, instance=nav_item)
-                if form.is_valid():
-                    form.save()
-                    return HttpResponse(json.dumps("success"),
-                        mimetype="application/json")
-                return HttpResponseForbidden(json.dumps(form.errors),
+        form_class = PonyForm
+        model = Pony
+        permission_required = "ponies.change_pony"
+
+        def form_valid(self, form):
+            self.object = form.save()
+            if self.request.is_ajax():
+                return HttpResponse(json.dumps("success"),
                     mimetype="application/json")
-            raise Http404
+            return super(PonyAjaxUpdateView, self).form_valid(form)
+
+        def form_invalid(self, form):
+            if self.request.is_ajax():
+                return HttpResponseBadRequest(json.dumps(form.errors),
+                    mimetype="application/json")
+            return super(PonyAjaxUpdateView, self).form_invalid(form)
+
+Again, nothing special in the view. We use an ``UpdateView`` so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our ``form_valid`` method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard ``HttpResponse`` or one with a message, like demonstrated above, is enough. If your view creates new objects or deletes old ones, returning proper status codes, like ``201`` for ``Created`` is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.
+
+Similarly, above, if the form is invalid, we serialize the form errors (note: not the ``non_form_errors()`` errors) and send them back to the view. The script we wrote above, ``apply_form_field_error`` can be called in a loop for each error in the list and update your form so the users know what they did wrong.
+
+.. _this bit of Javascript: https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+.. _Twitter Bootstrap: http://twitter.github.com/bootstrap
+.. _Handlebars: http://handlebarsjs.com
+.. _tag: https://gist.github.com/629508
+.. _django-tastypie: http://tastypieapi.org
