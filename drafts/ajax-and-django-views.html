@@ -210,6 +210,7 @@
     <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Submit&quot;</span><span class="nt">&gt;</span>
 <span class="nt">&lt;/form&gt;</span>
 </pre></div>
+<p>This isn't anything special, as you can see. Just a standard HTML form, like would be rendered by Django's form template filters (e.g. <tt class="docutils literal">{{ form|as_ul }}</tt>). If you need to perform AJAX tasks on non-form elemnts, the HTML5-added <tt class="docutils literal">data-</tt> attribute is really handy. We use it a lot for holding on to URLs and primary keys like: <tt class="docutils literal">&lt;li <span class="pre">data-url=&quot;{%</span> url pony_update_view pony.pk %}&quot; <span class="pre">data-pk=&quot;{{</span> pony.pk <span class="pre">}}&quot;&gt;{{</span> pony.name <span class="pre">}}&lt;/li&gt;</span></tt>. This is useful for sortable interfaces, for example.</p>
 </div>
 <div class="section" id="jquery">
 <h3>jQuery</h3>
@@ -239,6 +240,9 @@
         <span class="p">});</span>
 <span class="p">});</span>
 </pre></div>
+<p>Again, nothing special if you're used to doing AJAX requests in jQuery. We stop the form from actually submitting using <tt class="docutils literal">preventDefault()</tt> on the submission event, then build a few variables. Luckily we can get the URL directly off the form; this is part of why we end up using the <tt class="docutils literal">data-</tt> attributes a lot, so we can separate our templates from our Javascript. We typically go through and name out the keys that we ant to send through to the backend view in the <tt class="docutils literal">data</tt> dict, but you could use serialization options provided by jQuery or another plugin. These just seem to have a lot of quirks that we'd rather not take into consideration (especially not for an example in a blog post). Our way is definitely more manual but less error-prone.</p>
+<p>We then provide <tt class="docutils literal">success</tt> and <tt class="docutils literal">error</tt> attributes for the <tt class="docutils literal">.ajax()</tt> call. These <em>can</em> be provided outside of the <tt class="docutils literal">.ajax()</tt> call, which is very useful if your code is more modular, but we rarely have need of that approach. The <tt class="docutils literal">success</tt> function just prints out a message to the user, letting them know everything saved correctly. This is where you would update UI elements or whatever your use case requires.</p>
+<p>The <tt class="docutils literal">error</tt> function turns the JSON string that our view returned into a Javascript object so we can dig through it more easily (no one likes to parse text). We loop through all of the provided errors and, depending on if their key indicates them to be global or field-specific, render them out to the page for the user. Again, this is where you'd want to update your interface.</p>
 </div>
 </div>
 

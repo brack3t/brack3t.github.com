@@ -164,6 +164,8 @@ HTML
         <input type="submit" value="Submit">
     </form>
 
+This isn't anything special, as you can see. Just a standard HTML form, like would be rendered by Django's form template filters (e.g. ``{{ form|as_ul }}``). If you need to perform AJAX tasks on non-form elemnts, the HTML5-added ``data-`` attribute is really handy. We use it a lot for holding on to URLs and primary keys like: ``<li data-url="{% url pony_update_view pony.pk %}" data-pk="{{ pony.pk }}">{{ pony.name }}</li>``. This is useful for sortable interfaces, for example.
+
 jQuery
 ------
 
@@ -194,6 +196,12 @@ jQuery
                 }
             });
     });
+
+Again, nothing special if you're used to doing AJAX requests in jQuery. We stop the form from actually submitting using ``preventDefault()`` on the submission event, then build a few variables. Luckily we can get the URL directly off the form; this is part of why we end up using the ``data-`` attributes a lot, so we can separate our templates from our Javascript. We typically go through and name out the keys that we ant to send through to the backend view in the ``data`` dict, but you could use serialization options provided by jQuery or another plugin. These just seem to have a lot of quirks that we'd rather not take into consideration (especially not for an example in a blog post). Our way is definitely more manual but less error-prone.
+
+We then provide ``success`` and ``error`` attributes for the ``.ajax()`` call. These *can* be provided outside of the ``.ajax()`` call, which is very useful if your code is more modular, but we rarely have need of that approach. The ``success`` function just prints out a message to the user, letting them know everything saved correctly. This is where you would update UI elements or whatever your use case requires.
+
+The ``error`` function turns the JSON string that our view returned into a Javascript object so we can dig through it more easily (no one likes to parse text). We loop through all of the provided errors and, depending on if their key indicates them to be global or field-specific, render them out to the page for the user. Again, this is where you'd want to update your interface.
 
 
 .. _this bit of Javascript: https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
