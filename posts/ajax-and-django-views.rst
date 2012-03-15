@@ -94,7 +94,7 @@ These two scripts mirror Django's ``messages`` app's functionality. Both use Han
 
 The ``verbatim`` tag_ there is from Eric Florenzano and makes including Javascript templates in your Django-parsed HTML really easy. We include these in a base template and provide a spot in the rest of the document to attach them to. Again, this is based largely on Twitter Bootstrap, so your markup will vary.
 
-Ajax Views
+AJAX Views
 ==========
 
 So now let's get down to the good stuff. The following view is very generic and only shows the basic concept, but we're sure you'll get the gist of it.
@@ -114,13 +114,21 @@ So now let's get down to the good stuff. The following view is very generic and 
         permission_required = "ponies.change_pony"
 
         def form_valid(self, form):
-            self.object = form.save()
+            """
+            If the request is ajax, save the form and return a json response.
+            Otherwise return super as expected.
+            """
             if self.request.is_ajax():
+                self.object = form.save()
                 return HttpResponse(json.dumps("success"),
                     mimetype="application/json")
             return super(PonyAjaxUpdateView, self).form_valid(form)
 
         def form_invalid(self, form):
+            """
+            We haz errors in the form. If ajax, return them as json.
+            Otherwise, proceed as normal.
+            """
             if self.request.is_ajax():
                 return HttpResponseBadRequest(json.dumps(form.errors),
                     mimetype="application/json")
@@ -128,10 +136,66 @@ So now let's get down to the good stuff. The following view is very generic and 
 
 Again, nothing special in the view. We use an ``UpdateView`` so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our ``form_valid`` method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard ``HttpResponse`` or one with a message, like demonstrated above, is enough. If your view creates new objects or deletes old ones, returning proper status codes, like ``201`` for ``Created`` is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.
 
-Similarly, above, if the form is invalid, we serialize the form errors (note: not the ``non_form_errors()`` errors) and send them back to the view. The script we wrote above, ``apply_form_field_error`` can be called in a loop for each error in the list and update your form so the users know what they did wrong.
+Similarly, above, if the form is invalid, we serialize the form errors (note: not the ``non_field_errors()`` errors) and send them back to the view. The script we wrote above, ``apply_form_field_error`` can be called in a loop for each error in the list and update your form so the users know what they did wrong.
+
+    .. role:: info-label
+        :class: "label label-info"
+
+    :info-label:`note` Did you notice the *braces* package we used in the above view? That's a package we released from a previous blog post on `custom class-based view mixins`_. You can get it on Github_ or PyPI_.
+
+Form Errors
+-----------
+
+The difference between ``form.errors`` and ``form.non_field_errors()``: ``form.errors`` are any errors directly related to a field in your form, ``form.non_field_errors()`` would include errors raised by a custom ``clean()`` method and are put into a special "field" called ``__all__``.
+
+
+The jQuery Side
+===============
+
+.. code-block:: html
+
+    <ul class="ponies">
+        {% for pony in object_list %}
+        <li data-url="{% url pony_update_view pony.pk %}" data-pk="{{ pony.pk }}">
+            Magic Pony</li>
+        {% endfor %}
+    </ul>
+
+.. code-block:: javascript
+
+    $(document).on("click", "#pony_table button", function(e) {
+        e.preventDefault();
+        var self = $(this),
+            pony = $(this).attr("data-pk"),
+            url = $(",
+            ajax_req = $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    amenity: amenity
+                },
+                success: function(data, textStatus, jqXHR) {
+                    self.closest("tr").remove();
+                    var optgroup = $("#amenities_list").find("optgroup[label=" + data.locale_name + "]"),
+                        option = $("<option></option>").val(data.pk).text(data.name);
+                    if (typeof(optgroup) !== "undefined" && optgroup.length >= 1) {
+                        option.appendTo(optgroup);
+                    } else {
+                        var optgroup = $("<optgroup></optgroup>").attr("label", data.locale_name);
+                        option.appendTo(optgroup);
+                        optgroup.appendTo($("#amenities_list"));
+                    }
+                    $("#amenities_list").trigger("liszt:updated");
+                }
+            });
+    });
+
 
 .. _this bit of Javascript: https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 .. _Twitter Bootstrap: http://twitter.github.com/bootstrap
 .. _Handlebars: http://handlebarsjs.com
 .. _tag: https://gist.github.com/629508
 .. _django-tastypie: http://tastypieapi.org
+.. _Github: https://github.com/brack3t/django-braces
+.. _PyPI: http://pypi.python.org/pypi/django-braces/
+.. _custom class-based view mixins: http://brack3t.com/our-custom-mixins.html

@@ -75,7 +75,7 @@
     <article>
         <header>
             <h1><span class="slabtext">Ajax and Django Views</span></h1>
-            <h6><span class="permalink">Published: <a  href=".././ajax-and-django-views.html">03-14-2012</a></span>
+            <h6><span class="permalink">Published: <a  href=".././ajax-and-django-views.html">03-15-2012</a></span>
 <span class="author">by <strong>Chris and Kenneth</strong></span>
 <span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/ajax.html">ajax</a> <a href=".././tag/jquery.html">jquery</a> </span>
 
@@ -183,7 +183,13 @@
 <span class="x">        return super(PonyAjaxUpdateView, self).form_invalid(form)</span>
 </pre></div>
 <p>Again, nothing special in the view. We use an <tt class="docutils literal">UpdateView</tt> so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our <tt class="docutils literal">form_valid</tt> method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard <tt class="docutils literal">HttpResponse</tt> or one with a message, like demonstrated above, is enough. If your view creates new objects or deletes old ones, returning proper status codes, like <tt class="docutils literal">201</tt> for <tt class="docutils literal">Created</tt> is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.</p>
-<p>Similarly, above, if the form is invalid, we serialize the form errors (note: not the <tt class="docutils literal">non_form_errors()</tt> errors) and send them back to the view. The script we wrote above, <tt class="docutils literal">apply_form_field_error</tt> can be called in a loop for each error in the list and update your form so the users know what they did wrong.</p>
+<p>Similarly, above, if the form is invalid, we serialize the form errors (note: not the <tt class="docutils literal">non_field_errors()</tt> errors) and send them back to the view. The script we wrote above, <tt class="docutils literal">apply_form_field_error</tt> can be called in a loop for each error in the list and update your form so the users know what they did wrong.</p>
+<blockquote>
+<span class="label label-info">note</span> Did you notice the <em>braces</em> package we used in the above view? That's a package we released from a previous blog post on <a class="reference external" href="http://brack3t.com/our-custom-mixins.html">custom class-based view mixins</a>. You can get it on <a class="reference external" href="https://github.com/brack3t/django-braces">Github</a> or <a class="reference external" href="http://pypi.python.org/pypi/django-braces/">PyPI</a>.</blockquote>
+<div class="section" id="form-errors">
+<h3>Form Errors</h3>
+<p>The difference between <tt class="docutils literal">form.errors</tt> and <tt class="docutils literal">form.non_field_errors()</tt>: <tt class="docutils literal">form.errors</tt> are any errors directly related to a field in your form, <tt class="docutils literal">form.non_field_errors()</tt> would include errors raised by a custom <tt class="docutils literal">clean()</tt> method and are put into a special &quot;field&quot; called <tt class="docutils literal">__all__</tt>.</p>
+</div>
 </div>
 
     </article>
