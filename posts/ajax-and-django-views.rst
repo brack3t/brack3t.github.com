@@ -1,5 +1,5 @@
 =====================
-Ajax and Django Views
+AJAX and Django Views
 =====================
 
 :author: Chris and Kenneth
