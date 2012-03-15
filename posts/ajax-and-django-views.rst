@@ -152,40 +152,45 @@ The difference between ``form.errors`` and ``form.non_field_errors()``: ``form.e
 The jQuery Side
 ===============
 
+HTML
+----
+
 .. code-block:: html
 
-    <ul class="ponies">
-        {% for pony in object_list %}
-        <li data-url="{% url pony_update_view pony.pk %}" data-pk="{{ pony.pk }}">
-            Magic Pony</li>
-        {% endfor %}
-    </ul>
+    <form id="pony_form" method="POST" action="{% url pony_update_view pony.pk %}">
+        {% csrf_token %}
+        <label for="id_name">Pony Name</label>
+        <input type="text" name="name" id="id_name">
+        <input type="submit" value="Submit">
+    </form>
+
+jQuery
+------
 
 .. code-block:: javascript
 
-    $(document).on("click", "#pony_table button", function(e) {
+    $(document).on("submit", "#pony_form", function(e) {
         e.preventDefault();
         var self = $(this),
-            pony = $(this).attr("data-pk"),
-            url = $(",
+            url = self.attr("action"),
             ajax_req = $.ajax({
                 url: url,
                 type: "POST",
                 data: {
-                    amenity: amenity
+                    name: self.find("#id_name").val()
                 },
                 success: function(data, textStatus, jqXHR) {
-                    self.closest("tr").remove();
-                    var optgroup = $("#amenities_list").find("optgroup[label=" + data.locale_name + "]"),
-                        option = $("<option></option>").val(data.pk).text(data.name);
-                    if (typeof(optgroup) !== "undefined" && optgroup.length >= 1) {
-                        option.appendTo(optgroup);
-                    } else {
-                        var optgroup = $("<optgroup></optgroup>").attr("label", data.locale_name);
-                        option.appendTo(optgroup);
-                        optgroup.appendTo($("#amenities_list"));
-                    }
-                    $("#amenities_list").trigger("liszt:updated");
+                    django_message("Pony saved successfully.", "success");
+                },
+                error: functior(data, textStatus, jqXHR) {
+                    var errors = $.parseJSON(data.responseText);
+                    $.each(errors, function(index, value) {
+                        if (index === "__all__") {
+                            django_message(value[0], "error");
+                        } else {
+                            apply_form_field_error(index, value);
+                        }
+                    });
                 }
             });
     });
