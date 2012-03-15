@@ -245,6 +245,19 @@
 <p>The <tt class="docutils literal">error</tt> function turns the JSON string that our view returned into a Javascript object so we can dig through it more easily (no one likes to parse text). We loop through all of the provided errors and, depending on if their key indicates them to be global or field-specific, render them out to the page for the user. Again, this is where you'd want to update your interface.</p>
 </div>
 </div>
+<div class="section" id="summary">
+<h2>Summary</h2>
+<p>To be honest, we don't end up using AJAX in exactly the method prescribed above. We usually use AJAX for utilitarian functions, like saving the order of records, activating/deactivating records, and deleting records in many-to-many joining tables. That said, our utilization of AJAX and the one above are 99% identical, so don't feel that we're giving you advice we wouldn't stand behind.</p>
+<p>The ability to update, delete, and reorder elements without requiring a page load really adds a lot to your interface (assuming it's appropriate) and doing that with Django is amazingly easy. We've heard a few people say that class-based views make AJAX harder, or at least that it's easier with function-based views, but we haven't seen that to be the case at all. So don't be afraid to try AJAX regardless of the type of view you prefer.</p>
+<div class="section" id="notes">
+<h3>Notes</h3>
+<ol class="arabic simple">
+<li>If you're doing <strong>a lot</strong> of AJAX work, look into an API framework like <a class="reference external" href="http://tastypieapi.org">django-tastypie</a> or <a class="reference external" href="http://django-rest-framework.org/">django-rest-framework</a>. We hope to cover more on Tastypie in a later post. These two frameworks become even more useful when you delve into things like <a class="reference external" href="http://backbonejs.org">Backbone.js</a>.</li>
+<li>We don't recommend doing create, update, or delete of first-class records through AJAX. We both feel that the response of a new page load gives some finality and completeness to the process that users expect, which is why the above example isn't based directly off code we've written for any clients. If you disagree, feel free to use the above examples to create your user experience. If you agree, we're sure you can modify the above code, as we do, to handle sort ordering, joining/disjoining, and other second-class record manipulation.</li>
+<li>We felt like the above <tt class="docutils literal">UpdateView</tt> was a fairly solid and well-rounded example. If you need more information or examples, let us know in the comments and we'll gladly extend the post.</li>
+</ol>
+</div>
+</div>
 
     </article>
 
