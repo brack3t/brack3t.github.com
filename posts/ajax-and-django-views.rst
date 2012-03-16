@@ -12,7 +12,9 @@ It seems that cleanly and easily doing AJAX views in Django is an area that give
 Django automatic CSRF
 =====================
 
-To start things off, put `this bit of Javascript`_ from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows you to ignore the CSRF token for AJAX views. While this sounds more dangerous, the same-origin policy of AJAX requests should provide a decent amount of protection already. If you're really concerned, don't use this script and fetch a new CSRF token every time you submit a form, basically rebuilding the HTML form after every submission.
+To start things off, put `this bit of Javascript`_ from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows *you* to ignore the CSRF token for AJAX views, but it will be added as a request header.
+
+We previously said this could be seen as a security loophole and that same-origin came into effect. Both of these statements are wrong.
 
 AJAX & Form Field Errors
 ========================

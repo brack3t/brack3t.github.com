@@ -84,7 +84,8 @@
         <p>It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by <em>not</em> having a page load. We're also big fans of <a class="reference external" href="http://tastypieapi.org">django-tastypie</a> but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.</p>
 <div class="section" id="django-automatic-csrf">
 <h2>Django automatic CSRF</h2>
-<p>To start things off, put <a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax">this bit of Javascript</a> from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows you to ignore the CSRF token for AJAX views. While this sounds more dangerous, the same-origin policy of AJAX requests should provide a decent amount of protection already. If you're really concerned, don't use this script and fetch a new CSRF token every time you submit a form, basically rebuilding the HTML form after every submission.</p>
+<p>To start things off, put <a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax">this bit of Javascript</a> from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows <em>you</em> to ignore the CSRF token for AJAX views, but it will be added as a request header.</p>
+<p>We previously said this could be seen as a security loophole and that same-origin came into effect. Both of these statements are wrong.</p>
 </div>
 <div class="section" id="ajax-form-field-errors">
 <h2>AJAX &amp; Form Field Errors</h2>
