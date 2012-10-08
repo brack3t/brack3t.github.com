@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>A Pelican Blog - django</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href=".././theme/css/main.css" type="text/css" />
+        
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="A Pelican Blog Atom Feed" />
+        
+        
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie.css"/>
+                <script src=".././js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+
+        <header id="banner" class="body">
+                <h1><a href="../.">A Pelican Blog </a></h1>
+                <nav><ul>
+                
+                
+                
+                    <li><a href=".././pages/about-us.html">About</a></li>
+                
+                
+                
+                    <li ><a href=".././category/django.html">django</a></li>
+                
+                    <li ><a href=".././category/posts.html">posts</a></li>
+                
+                    <li ><a href=".././category/web-development.html">web development</a></li>
+                
+                </ul></nav>
+        </header><!-- /#banner -->
+                
+
+            
+
+        
+        
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href=".././ajax-and-django-views.html">AJAX and Django Views</a></h1> 
+                    <footer class="post-info">
+        <abbr class="published" title="2012-06-26T18:15:15">
+                Tue 26 June 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/chris-and-kenneth.html">Chris and Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/ajax.html">ajax</a><a href=".././tag/jquery.html">jquery</a></p>
+
+
+</footer><!-- /.post-info --><p>It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by <em>not</em> having a page load. We're also big fans of <a class="reference external" href="http://tastypieapi.org">django-tastypie</a> but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.</p>
+<div class="section" id="django-automatic-csrf">
+<h2>Django automatic CSRF</h2>
+<p>To start things off, put <a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax">this bit of Javascript</a> from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows <em>you</em> to ignore the CSRF token for AJAX views, but it will be added as a request header.</p>
+<p>We previously said this could be seen as a security loophole and that same-origin came into effect. Both of these statements are wrong.</p>
+</div>
+<div class="section" id="ajax-form-field-errors">
+<h2>AJAX &amp; Form Field Errors</h2>
+<p>Before we get to the Django side, there are a few small scripts that we recycle on every project.</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">apply_form_field_error</span><span class="p">(</span><span class="nx">fieldname</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">input</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#id_&quot;</span> <span class="o">+</span> <span class="nx">fieldname</span><span class="p">),</span>
+        <span class="nx">container</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#div_id_&quot;</span> <span class="o">+</span> <span class="nx">fieldname</span><span class="p">),</span>
+        <span class="nx">error_msg</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;span /&gt;&quot;</span><span class="p">).</span><span class="nx">addClass</span><span class="p">(</span><span class="s2">&quot;help-inline ajax-error&quot;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="nx">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+
+    <span class="nx">container</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">);</span>
+    <span class="nx">error_msg</span><span class="p">.</span><span class="nx">insertAfter</span><span class="p">(</span><span class="nx">input</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">clear_form_field_errors</span><span class="p">(</span><span class="nx">form</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.ajax-error&quot;</span><span class="p">,</span> <span class="nx">$</span><span class="p">(</span><span class="nx">form</span><span class="p">)).</span><span class="nx">remove</span><span class="p">();</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.error&quot;</span><span class="p">,</span> <span class="nx">$</span><span class="p">(</span><span class="nx">form</span><span class="p">)).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>These two functions are pretty self-explanatory, but I'll go over them anyway. The first, <tt class="docutils literal">apply_form_field_error</tt>, takes a field name and an error, finds the field on the page and sets the error text to the passed-in error. Our selectors here take advantage of how <a class="reference external" href="http://twitter.github.com/bootstrap">Twitter Bootstrap</a> renders forms, so you may need to change the selectors to match your own markup. The second, <tt class="docutils literal">clear_form_field_errors</tt>, removes the above text and classes, basicaly resetting the form. It's important to run this script before every AJAX submission so you don't get doubled-up errors if someone submits invalid data on the same field twice. You could add it to jQuery's <tt class="docutils literal">beforeSend</tt> if you don't want to have to think about it.</p>
+<p>There are a couple more useful utility functions that we thought might be useful for some people.</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">django_message</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">level</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">levels</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">warning</span><span class="o">:</span> <span class="s1">&#39;alert&#39;</span><span class="p">,</span>
+        <span class="nx">error</span><span class="o">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span>
+        <span class="nx">info</span><span class="o">:</span> <span class="s1">&#39;info&#39;</span>
+    <span class="p">},</span>
+    <span class="nx">source</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#message_template&#39;</span><span class="p">).</span><span class="nx">html</span><span class="p">(),</span>
+    <span class="nx">template</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span><span class="nx">source</span><span class="p">),</span>
+    <span class="nx">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;tags&#39;</span><span class="o">:</span> <span class="nx">levels</span><span class="p">[</span><span class="nx">level</span><span class="p">],</span>
+        <span class="s1">&#39;message&#39;</span><span class="o">:</span> <span class="nx">msg</span>
+    <span class="p">},</span>
+    <span class="nx">html</span> <span class="o">=</span> <span class="nx">template</span><span class="p">(</span><span class="nx">context</span><span class="p">);</span>
+
+    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#message_area&quot;</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="nx">html</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">django_block_message</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">level</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">source</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#message_block_template&quot;</span><span class="p">).</span><span class="nx">html</span><span class="p">(),</span>
+        <span class="nx">template</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span><span class="nx">source</span><span class="p">),</span>
+        <span class="nx">context</span> <span class="o">=</span> <span class="p">{</span><span class="nx">level</span><span class="o">:</span> <span class="nx">level</span><span class="p">,</span> <span class="nx">body</span><span class="o">:</span> <span class="nx">msg</span><span class="p">},</span>
+        <span class="nx">html</span> <span class="o">=</span> <span class="nx">template</span><span class="p">(</span><span class="nx">context</span><span class="p">);</span>
+
+    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#message_area&quot;</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="nx">html</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>These two scripts mirror Django's <tt class="docutils literal">messages</tt> app's functionality. Both use <a class="reference external" href="http://handlebarsjs.com">Handlebars</a> to render the template, but you could use any Javascript templating library you'd like. Our templates look like so:</p>
+<div class="highlight"><pre>{% load verbatim_tag %}
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">&quot;message_template&quot;</span> <span class="na">type=</span><span class="s">&quot;text/x-handlebars-template&quot;</span><span class="nt">&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">verbatim</span> <span class="o">%</span><span class="p">}</span>
+    <span class="o">&lt;</span><span class="nx">div</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;alert alert-{{tags}} fade in&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">alert</span><span class="o">=</span><span class="s2">&quot;{{tags}}&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">a</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;close&quot;</span> <span class="nx">title</span><span class="o">=</span><span class="s2">&quot;Close&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;#&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">dismiss</span><span class="o">=</span><span class="s2">&quot;alert&quot;</span><span class="o">&gt;&amp;</span><span class="nx">times</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/a&gt;</span>
+        <span class="p">{{{</span><span class="nx">message</span><span class="p">}}}</span>
+    <span class="o">&lt;</span><span class="err">/div&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">endverbatim</span><span class="o">%</span><span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">&quot;message_block_template&quot;</span> <span class="na">type=</span><span class="s">&quot;text/x-handlebars-template&quot;</span><span class="nt">&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">verbatim</span> <span class="o">%</span><span class="p">}</span>
+    <span class="o">&lt;</span><span class="nx">div</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;alert alert-block alert-{{level}} fade in&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">a</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;close&quot;</span> <span class="nx">title</span><span class="o">=</span><span class="s2">&quot;Close&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;#&quot;</span> <span class="nx">data</span><span class="o">-</span><span class="nx">dismiss</span><span class="o">=</span><span class="s2">&quot;alert&quot;</span><span class="o">&gt;&amp;</span><span class="nx">times</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/a&gt;</span>
+        <span class="p">{{{</span><span class="nx">body</span><span class="p">}}}</span>
+    <span class="o">&lt;</span><span class="err">/div&gt;</span>
+    <span class="p">{</span><span class="o">%</span> <span class="nx">endverbatim</span> <span class="o">%</span><span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+</pre></div>
+<p>The <tt class="docutils literal">verbatim</tt> <a class="reference external" href="https://gist.github.com/629508">tag</a> there is from Eric Florenzano and makes including Javascript templates in your Django-parsed HTML really easy. We include these in a base template and provide a spot in the rest of the document to attach them to. Again, this is based largely on Twitter Bootstrap, so your markup will vary.</p>
+</div>
+<div class="section" id="ajax-views">
+<h2>AJAX Views</h2>
+<p>So now let's get down to the good stuff. The following view is very generic and only shows the basic concept, but we're sure you'll get the gist of it.</p>
+<div class="highlight"><pre><span class="x">from django.http import HttpResponse, HttpResponseBadRequest</span>
+<span class="x">from django.utils import simplejson as json</span>
+<span class="x">from django.views.generic import UpdateView</span>
+
+<span class="x">from braces.views import LoginRequiredMixin, PermissionRequiredMixin</span>
+
+<span class="x">class PonyAjaxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):</span>
+
+<span class="x">    form_class = PonyForm</span>
+<span class="x">    model = Pony</span>
+<span class="x">    permission_required = &quot;ponies.change_pony&quot;</span>
+
+<span class="x">    def form_valid(self, form):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        If the request is ajax, save the form and return a json response.</span>
+<span class="x">        Otherwise return super as expected.</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        if self.request.is_ajax():</span>
+<span class="x">            self.object = form.save()</span>
+<span class="x">            return HttpResponse(json.dumps(&quot;success&quot;),</span>
+<span class="x">                mimetype=&quot;application/json&quot;)</span>
+<span class="x">        return super(PonyAjaxUpdateView, self).form_valid(form)</span>
+
+<span class="x">    def form_invalid(self, form):</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        We haz errors in the form. If ajax, return them as json.</span>
+<span class="x">        Otherwise, proceed as normal.</span>
+<span class="x">        &quot;&quot;&quot;</span>
+<span class="x">        if self.request.is_ajax():</span>
+<span class="x">            return HttpResponseBadRequest(json.dumps(form.errors),</span>
+<span class="x">                mimetype=&quot;application/json&quot;)</span>
+<span class="x">        return super(PonyAjaxUpdateView, self).form_invalid(form)</span>
+</pre></div>
+<p>Again, nothing special in the view. We use an <tt class="docutils literal">UpdateView</tt> so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our <tt class="docutils literal">form_valid</tt> method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard <tt class="docutils literal">HttpResponse</tt> or one with a message, like demonstrated above, is enough. When returning JSON, make sure to include the <tt class="docutils literal"><span class="pre">mimetype=&quot;application/json&quot;</span></tt> in your <tt class="docutils literal">HttpResponse</tt>. Without the proper <em>mimetype</em> you will be dealing with <tt class="docutils literal">text/html</tt> content instead of JSON. If your view creates new objects or deletes old ones, returning proper status codes, like <tt class="docutils literal">201</tt> for <tt class="docutils literal">Created</tt> is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.</p>
+<p>Similarly, above, if the form is invalid, we serialize the form errors (note: not the <tt class="docutils literal">non_field_errors()</tt> errors) and send them back to the view. The script we wrote above, <tt class="docutils literal">apply_form_field_error</tt> can be called in a loop for each error in the list and update your form so the users know what they did wrong.</p>
+<blockquote>
+<span class="label label-info">note</span> Did you notice the <em>braces</em> package we used in the above view? That's a package we released from a previous blog post on <a class="reference external" href="http://brack3t.com/our-custom-mixins.html">custom class-based view mixins</a>. You can get it on <a class="reference external" href="https://github.com/brack3t/django-braces">Github</a> or <a class="reference external" href="http://pypi.python.org/pypi/django-braces/">PyPI</a>.</blockquote>
+<div class="section" id="form-errors">
+<h3>Form Errors</h3>
+<p>The difference between <tt class="docutils literal">form.errors</tt> and <tt class="docutils literal">form.non_field_errors()</tt>: <tt class="docutils literal">form.errors</tt> are any errors directly related to a field in your form, <tt class="docutils literal">form.non_field_errors()</tt> would include errors raised by a custom <tt class="docutils literal">clean()</tt> method and are put into a special &quot;field&quot; called <tt class="docutils literal">__all__</tt>.</p>
+</div>
+</div>
+<div class="section" id="the-jquery-side">
+<h2>The jQuery Side</h2>
+<div class="section" id="html">
+<h3>HTML</h3>
+<div class="highlight"><pre><span class="nt">&lt;form</span> <span class="na">id=</span><span class="s">&quot;pony_form&quot;</span> <span class="na">method=</span><span class="s">&quot;POST&quot;</span> <span class="na">action=</span><span class="s">&quot;{% url pony_update_view pony.pk %}&quot;</span><span class="nt">&gt;</span>
+    {% csrf_token %}
+    <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;id_name&quot;</span><span class="nt">&gt;</span>Pony Name<span class="nt">&lt;/label&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;name&quot;</span> <span class="na">id=</span><span class="s">&quot;id_name&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Submit&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+</pre></div>
+<p>This isn't anything special, as you can see. Just a standard HTML form, like would be rendered by Django's form template filters (e.g. <tt class="docutils literal">{{ form|as_ul }}</tt>). If you need to perform AJAX tasks on non-form elemnts, the HTML5-added <tt class="docutils literal">data-</tt> attribute is really handy. We use it a lot for holding on to URLs and primary keys like: <tt class="docutils literal">&lt;li <span class="pre">data-url=&quot;{%</span> url pony_update_view pony.pk %}&quot; <span class="pre">data-pk=&quot;{{</span> pony.pk <span class="pre">}}&quot;&gt;{{</span> pony.name <span class="pre">}}&lt;/li&gt;</span></tt>. This is useful for sortable interfaces, for example.</p>
+</div>
+<div class="section" id="jquery">
+<h3>jQuery</h3>
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;submit&quot;</span><span class="p">,</span> <span class="s2">&quot;#pony_form&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">self</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">),</span>
+        <span class="nx">url</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">),</span>
+        <span class="nx">ajax_req</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+            <span class="nx">url</span><span class="o">:</span> <span class="nx">url</span><span class="p">,</span>
+            <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
+            <span class="nx">data</span><span class="o">:</span> <span class="p">{</span>
+                <span class="nx">name</span><span class="o">:</span> <span class="nx">self</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s2">&quot;#id_name&quot;</span><span class="p">).</span><span class="nx">val</span><span class="p">()</span>
+            <span class="p">},</span>
+            <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">textStatus</span><span class="p">,</span> <span class="nx">jqXHR</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">django_message</span><span class="p">(</span><span class="s2">&quot;Pony saved successfully.&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">);</span>
+            <span class="p">},</span>
+            <span class="nx">error</span><span class="o">:</span> <span class="nx">functior</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">textStatus</span><span class="p">,</span> <span class="nx">jqXHR</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">errors</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">parseJSON</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">responseText</span><span class="p">);</span>
+                <span class="nx">$</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">errors</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nx">index</span> <span class="o">===</span> <span class="s2">&quot;__all__&quot;</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nx">django_message</span><span class="p">(</span><span class="nx">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;error&quot;</span><span class="p">);</span>
+                    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                        <span class="nx">apply_form_field_error</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span> <span class="nx">value</span><span class="p">);</span>
+                    <span class="p">}</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+<p>Again, nothing special if you're used to doing AJAX requests in jQuery. We stop the form from actually submitting using <tt class="docutils literal">preventDefault()</tt> on the submission event, then build a few variables. Luckily we can get the URL directly off the form; this is part of why we end up using the <tt class="docutils literal">data-</tt> attributes a lot, so we can separate our templates from our Javascript. We typically go through and name out the keys that we want to send through to the backend view in the <tt class="docutils literal">data</tt> dict, but you could use serialization options provided by jQuery or another plugin. These just seem to have a lot of quirks that we'd rather not take into consideration (especially not for an example in a blog post). Our way is definitely more manual but less error-prone.</p>
+<p>We then provide <tt class="docutils literal">success</tt> and <tt class="docutils literal">error</tt> attributes for the <tt class="docutils literal">.ajax()</tt> call. These <em>can</em> be provided outside of the <tt class="docutils literal">.ajax()</tt> call, which is very useful if your code is more modular, but we rarely have need of that approach. The <tt class="docutils literal">success</tt> function just prints out a message to the user, letting them know everything saved correctly. This is where you would update UI elements or whatever your use case requires.</p>
+<p>The <tt class="docutils literal">error</tt> function turns the JSON string that our view returned into a Javascript object so we can dig through it more easily (no one likes to parse text). We loop through all of the provided errors and, depending on if their key indicates them to be global or field-specific, render them out to the page for the user. Again, this is where you'd want to update your interface.</p>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary</h2>
+<p>To be honest, we don't end up using AJAX in exactly the method prescribed above. We usually use AJAX for utilitarian functions, like saving the order of records, activating/deactivating records, and deleting records in many-to-many joining tables. That said, our utilization of AJAX and the one above are 99% identical, so don't feel that we're giving you advice we wouldn't stand behind.</p>
+<p>The ability to update, delete, and reorder elements without requiring a page load really adds a lot to your interface (assuming it's appropriate) and doing that with Django is amazingly easy. We've heard a few people say that class-based views make AJAX harder, or at least that it's easier with function-based views, but we haven't seen that to be the case at all. So don't be afraid to try AJAX regardless of the type of view you prefer.</p>
+<div class="section" id="notes">
+<h3>Notes</h3>
+<ol class="arabic simple">
+<li>If you're doing <strong>a lot</strong> of AJAX work, look into an API framework like <a class="reference external" href="http://tastypieapi.org">django-tastypie</a> or <a class="reference external" href="http://django-rest-framework.org/">django-rest-framework</a>. We hope to cover more on Tastypie in a later post. These two frameworks become even more useful when you delve into things like <a class="reference external" href="http://backbonejs.org">Backbone.js</a>.</li>
+<li>We don't recommend doing create, update, or delete of first-class records through AJAX. We both feel that the response of a new page load gives some finality and completeness to the process that users expect, which is why the above example isn't based directly off code we've written for any clients. If you disagree, feel free to use the above examples to create your user experience. If you agree, we're sure you can modify the above code, as we do, to handle sort ordering, joining/disjoining, and other second-class record manipulation.</li>
+<li>We felt like the above <tt class="docutils literal">UpdateView</tt> was a fairly solid and well-rounded example. If you need more information or examples, let us know in the comments and we'll gladly extend the post.</li>
+</ol>
+</div>
+</div>
+
+                </article>
+                
+            </aside><!-- /#featured -->
+            
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+            
+        
+        
+        
+            
+
+        
+         
+            
+            <li><article class="hentry">    
+                <header>
+                    <h1><a href=".././generic-layouts-in-crispy-forms.html" rel="bookmark"
+                           title="Permalink to Generic Layouts in Crispy Forms">Generic Layouts in Crispy Forms</a></h1>
+                </header>
+                
+                <div class="entry-content">
+                <footer class="post-info">
+        <abbr class="published" title="2012-06-26T18:15:15">
+                Tue 26 June 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/kenneth.html">Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/django-crispy-forms.html">django-crispy-forms</a><a href=".././tag/tip.html">tip</a></p>
+
+
+</footer><!-- /.post-info -->
+                <p>Just a quick tip and sanity check, today, about something I ran into with <a class="reference external" href="https://github.com/maraujop/django-crispy-forms">django-crispy-forms</a>, the awesome new form library from Miguel Araujo.</p>
+<p>This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from <tt class="docutils literal"><span class="pre">django-uni-form ...</span></tt></p>
+                <a class="readmore" href=".././generic-layouts-in-crispy-forms.html">read more</a>
+                
+                </div><!-- /.entry-content -->
+            </article></li>
+        
+        
+            
+
+        
+         
+            
+            <li><article class="hentry">    
+                <header>
+                    <h1><a href=".././our-custom-mixins.html" rel="bookmark"
+                           title="Permalink to Our Custom Mixins">Our Custom Mixins</a></h1>
+                </header>
+                
+                <div class="entry-content">
+                <footer class="post-info">
+        <abbr class="published" title="2012-06-26T18:15:15">
+                Tue 26 June 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/chris.html">Chris</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/cbvs.html">CBVs</a></p>
+
+
+</footer><!-- /.post-info -->
+                <p><strong>UPDATE</strong>: We've released a <a class="reference external" href="https://github.com/brack3t/django-braces">Github repo</a> and a <a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0">PyPI package</a> with our mixins. Feel free to fork and submit new ones through a pull-request.</p>
+<p>Let's just start out and say it, <strong>Class Based Views</strong>. Ooohhhh. Unfortunately the topic of class based views is
+thought of as somewhat of ...</p>
+                <a class="readmore" href=".././our-custom-mixins.html">read more</a>
+                
+                </div><!-- /.entry-content -->
+            </article></li>
+        
+        
+            
+
+        
+         
+            
+            <li><article class="hentry">    
+                <header>
+                    <h1><a href=".././user-friendlier-model-forms.html" rel="bookmark"
+                           title="Permalink to User-friendlier model forms">User-friendlier model forms</a></h1>
+                </header>
+                
+                <div class="entry-content">
+                <footer class="post-info">
+        <abbr class="published" title="2012-06-26T18:15:15">
+                Tue 26 June 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/kenneth.html">Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/python.html">python</a><a href=".././tag/forms.html">forms</a><a href=".././tag/models.html">models</a></p>
+
+
+</footer><!-- /.post-info -->
+                <p>Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the <tt class="docutils literal">rent</tt> field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be ...</p>
+                <a class="readmore" href=".././user-friendlier-model-forms.html">read more</a>
+                
+                </div><!-- /.entry-content -->
+            </article></li>
+        
+        
+            
+
+        
+         
+            
+            <li><article class="hentry">    
+                <header>
+                    <h1><a href=".././change-request-workflow.html" rel="bookmark"
+                           title="Permalink to Change Request Workflow">Change Request Workflow</a></h1>
+                </header>
+                
+                <div class="entry-content">
+                <footer class="post-info">
+        <abbr class="published" title="2012-02-26T11:01:00">
+                Sun 26 February 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/kenneth.html">Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/workflow.html">workflow</a><a href=".././tag/python.html">python</a></p>
+
+
+</footer><!-- /.post-info -->
+                <p>Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
+Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).
+Users and editors can both enter ...</p>
+                <a class="readmore" href=".././change-request-workflow.html">read more</a>
+                
+                </div><!-- /.entry-content -->
+            </article></li>
+        
+        
+            
+
+        
+         
+            
+            <li><article class="hentry">    
+                <header>
+                    <h1><a href=".././djangopeopleme.html" rel="bookmark"
+                           title="Permalink to Djangopeople.me">Djangopeople.me</a></h1>
+                </header>
+                
+                <div class="entry-content">
+                <footer class="post-info">
+        <abbr class="published" title="2011-06-13T18:50:00">
+                Mon 13 June 2011
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/chris.html">Chris</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/python.html">python</a><a href=".././tag/django.html">django</a><a href=".././tag/project.html">project</a></p>
+
+
+</footer><!-- /.post-info -->
+                <div class="section" id="what-is-it">
+<h2>What is it?</h2>
+<p>At it's core, <a class="reference external" href="http://djangopeople.me">djangopeople.me</a> is a place for <a class="reference external" href="https://www.djangoproject.com/">Django</a> developers to register and be found based on their geographic location, whether it's by recruiters or a lonely Django developer like ourselves trying to find others close to him/her. That's the general idea ...</p></div>
+                <a class="readmore" href=".././djangopeopleme.html">read more</a>
+                
+                </div><!-- /.entry-content -->
+            </article></li>
+        
+        
+            </ol><!-- /#posts-list -->
+            
+                
+            
+            </section><!-- /#content -->
+        
+    
+
+
+        <section id="extras" class="body">
+        
+        
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+
+
+
+</body>
+</html>

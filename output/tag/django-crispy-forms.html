@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>A Pelican Blog - django-crispy-forms</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href=".././theme/css/main.css" type="text/css" />
+        
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="A Pelican Blog Atom Feed" />
+        
+        
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie.css"/>
+                <script src=".././js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+
+        <header id="banner" class="body">
+                <h1><a href="../.">A Pelican Blog </a></h1>
+                <nav><ul>
+                
+                
+                
+                    <li><a href=".././pages/about-us.html">About</a></li>
+                
+                
+                
+                    <li ><a href=".././category/django.html">django</a></li>
+                
+                    <li ><a href=".././category/posts.html">posts</a></li>
+                
+                    <li ><a href=".././category/web-development.html">web development</a></li>
+                
+                </ul></nav>
+        </header><!-- /#banner -->
+                
+
+            
+
+        
+        
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href=".././generic-layouts-in-crispy-forms.html">Generic Layouts in Crispy Forms</a></h1> 
+                    <footer class="post-info">
+        <abbr class="published" title="2012-06-26T18:15:15">
+                Tue 26 June 2012
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/kenneth.html">Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/django.html">django</a>. </p>
+<p>tags: <a href=".././tag/django.html">django</a><a href=".././tag/django-crispy-forms.html">django-crispy-forms</a><a href=".././tag/tip.html">tip</a></p>
+
+
+</footer><!-- /.post-info --><p>Just a quick tip and sanity check, today, about something I ran into with <a class="reference external" href="https://github.com/maraujop/django-crispy-forms">django-crispy-forms</a>, the awesome new form library from Miguel Araujo.</p>
+<p>This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from <tt class="docutils literal"><span class="pre">django-uni-form</span></tt> to <tt class="docutils literal"><span class="pre">django-crispy-forms</span></tt>. It's a pretty painless
+transition, actually. Just do some find-and-replace across your files, basically changing any instance of <tt class="docutils literal">uni-</tt> to <tt class="docutils literal">crispy-</tt> (well, and <tt class="docutils literal">form</tt> to <tt class="docutils literal">forms</tt>), and you're good to go. Then, however, I wanted to
+convert two large forms that we have, which share 90% of their fields, to using the sharable <tt class="docutils literal">Layout</tt> objects that <tt class="docutils literal"><span class="pre">django-crispy-forms</span></tt> gives us.</p>
+<p>Basically, the forms looked like this:</p>
+<div class="highlight"><pre><span class="x">class FirstForm(GenericAppFormForTheExample):</span>
+<span class="x">    ...</span>
+
+<span class="x">    def __init__(self, *args, **kwargs):</span>
+<span class="x">        ...</span>
+<span class="x">        self.helper = FormHelper()</span>
+<span class="x">        self.helper.layout = Layout(</span>
+<span class="x">            &quot;field1&quot;,</span>
+<span class="x">            &quot;field2&quot;,</span>
+<span class="x">            &quot;special-field&quot;,</span>
+<span class="x">            [field3 through field20]</span>
+
+<span class="x">class SecondForm(GenericAppFormForTheExample):</span>
+<span class="x">    ...</span>
+
+<span class="x">    def __init__(self, *args, **kwargs):</span>
+<span class="x">        ...</span>
+<span class="x">        self.helper = FormHelper()</span>
+<span class="x">        self.helper.layout = Layout(</span>
+<span class="x">            &quot;field1&quot;,</span>
+<span class="x">            &quot;field2&quot;,</span>
+<span class="x">            &quot;special-field2&quot;,</span>
+<span class="x">            [field3 thorugh field20]</span>
+</pre></div>
+<p>Obviously that was a lot of repetition that we could cut out now that these inheritable layouts exist. By the way, I'm pretty sure this would have been possible in <tt class="docutils literal"><span class="pre">django-uni-form</span></tt> but likely not as friendly.</p>
+<p>First I started off by creating the shared resources. I made two of them since our special fields come in the middle of our layouts.</p>
+<div class="highlight"><pre><span class="n">form_intro_layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span>
+    <span class="s">&quot;field1&quot;</span><span class="p">,</span>
+    <span class="s">&quot;field2&quot;</span>
+<span class="p">)</span>
+
+<span class="n">form_common_layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">field3</span> <span class="n">through</span> <span class="n">field20</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+<p>And I added them each into my forms. I'm only going to show one form but you'll get the idea.</p>
+<div class="highlight"><pre><span class="x">self.form_intro_layout = form_intro_layout</span>
+<span class="x">self.form_intro_layout.insert(-1, &quot;special-field&quot;)</span>
+
+<span class="x">self.helper.layout = Layout(</span>
+<span class="x">    self.form_intro_layout,</span>
+<span class="x">    form_common_layout</span>
+<span class="x">)</span>
+</pre></div>
+<p>And, display-wise, it worked fine. This is, ideally, exactly what you do to extend these layouts. <strong>But</strong>, this causes problems in testing.</p>
+<p>We test all of our views, models, and forms. The form tests passed fine, but some of the view tests were throwing up warnings about fields being referenced more than once and, for example, <tt class="docutils literal"><span class="pre">special-field2</span></tt> missing
+from <tt class="docutils literal">FirstForm</tt>. Obviously something was up with the inheritance and with how I was instantiating objects.</p>
+<p>My next step was to stop using <tt class="docutils literal">self</tt> on the instance-specific versions of the generic layouts and just give them a local name like <tt class="docutils literal">standard_intro_layout</tt> (the <tt class="docutils literal">standard</tt> name makes more sense internally and its
+meaning isn't important for this example), but that didn't stop the errors. It did, however, still work fine visually.</p>
+<p>I tried using a <tt class="docutils literal">.copy()</tt> method on the layout, but that doesn't exist. So I turned to the <tt class="docutils literal">copy</tt> module of Python, specifically the <tt class="docutils literal">deepcopy</tt> method. I tried with just the standard <tt class="docutils literal">copy</tt> method, but it had
+the same effect of working visually, but throwing warnings on tests.</p>
+<p>The new version looked like this:</p>
+<div class="highlight"><pre><span class="x">from copy import deepcopy</span>
+
+<span class="x">standard_intro_layout = deepcopy(form_intro_layout)</span>
+<span class="x">standard_intro_layout.insert(-1, &quot;special-field&quot;)</span>
+<span class="x">...</span>
+</pre></div>
+<p>That works perfectly! It still appears the same visually, like all the methods have, and it also quiets the tests so they pass without warnings.</p>
+<p>Unless someone knows of a reason I shouldn't use <tt class="docutils literal">deepcopy</tt>, this seems to be the way to solve this problem. I'm also not sure if it was the <tt class="docutils literal">self</tt> (which I doubt, since I removed it and the warnings still
+happened), or the fact that both forms extend the same abstract form, or some other variable that led to the problem. Regardless, I'm happy to have solved it.</p>
+
+                </article>
+                
+                    
+                
+            </aside><!-- /#featured -->
+            
+        
+        
+        
+            </ol><!-- /#posts-list -->
+            
+            </section><!-- /#content -->
+        
+    
+
+
+        <section id="extras" class="body">
+        
+        
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+
+
+
+</body>
+</html>

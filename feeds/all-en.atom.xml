@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com</id><updated>2012-03-15T17:36:27Z</updated><entry><title>AJAX and Django Views</title><link href="http://brack3t.com/ajax-and-django-views.html" rel="alternate"></link><updated>2012-03-15T17:36:27Z</updated><author><name>Chris and Kenneth</name></author><id>tag:brack3t.com,2012-03-15:/ajax-and-django-views.html/</id><summary type="html">&lt;p&gt;It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by &lt;em&gt;not&lt;/em&gt; having a page load. We're also big fans of &lt;a class="reference external" href="http://tastypieapi.org"&gt;django-tastypie&lt;/a&gt; but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com/" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com/</id><updated>2012-06-26T18:15:15Z</updated><entry><title>AJAX and Django Views</title><link href="http://brack3t.com/ajax-and-django-views.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Chris and Kenneth</name></author><id>tag:brack3t.com,2012-06-26:ajax-and-django-views.html</id><summary type="html">&lt;p&gt;It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by &lt;em&gt;not&lt;/em&gt; having a page load. We're also big fans of &lt;a class="reference external" href="http://tastypieapi.org"&gt;django-tastypie&lt;/a&gt; but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.&lt;/p&gt;
 &lt;div class="section" id="django-automatic-csrf"&gt;
 &lt;h2&gt;Django automatic CSRF&lt;/h2&gt;
 &lt;p&gt;To start things off, put &lt;a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax"&gt;this bit of Javascript&lt;/a&gt; from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows &lt;em&gt;you&lt;/em&gt; to ignore the CSRF token for AJAX views, but it will be added as a request header.&lt;/p&gt;
@@ -177,250 +177,73 @@
 &lt;/ol&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="django"></category><category term="ajax"></category><category term="jquery"></category></entry><entry><title>User-friendlier model forms</title><link href="http://brack3t.com/user-friendlier-model-forms.html" rel="alternate"></link><updated>2012-03-12T14:27:07Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-03-12:/user-friendlier-model-forms.html/</id><summary type="html">&lt;p&gt;Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &amp;quot;call for details&amp;quot; or &amp;quot;on approved credit&amp;quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.&lt;/p&gt;
-&lt;div class="section" id="model"&gt;
-&lt;h2&gt;Model&lt;/h2&gt;
-&lt;p&gt;Let's go over our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model first. It's an abstract model so we can use it in multiple places (we have more than one logical model in the system that needs to deal with rent, this way we can use it multiple places without having to hold on to a huge amount of joins). We have several other abstract models that perform the same actions as our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model, but I won't show them here.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.core.exceptions import ValidationError&lt;/span&gt;
-&lt;span class="x"&gt;from django.db import models&lt;/span&gt;
+</summary><category term="django"></category><category term="ajax"></category><category term="jquery"></category></entry><entry><title>Generic Layouts in Crispy Forms</title><link href="http://brack3t.com/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-06-26:generic-layouts-in-crispy-forms.html</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
+&lt;p&gt;This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt;. It's a pretty painless
+transition, actually. Just do some find-and-replace across your files, basically changing any instance of &lt;tt class="docutils literal"&gt;uni-&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;crispy-&lt;/tt&gt; (well, and &lt;tt class="docutils literal"&gt;form&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;forms&lt;/tt&gt;), and you're good to go. Then, however, I wanted to
+convert two large forms that we have, which share 90% of their fields, to using the sharable &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; objects that &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt; gives us.&lt;/p&gt;
+&lt;p&gt;Basically, the forms looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class FirstForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
 
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 through field20]&lt;/span&gt;
 
-&lt;span class="x"&gt;class Rent(models.Model):&lt;/span&gt;
-&lt;span class="x"&gt;    rent_low = models.PositiveIntegerField()&lt;/span&gt;
-&lt;span class="x"&gt;    rent_high = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
-&lt;span class="x"&gt;    rent_percent_income = models.FloatField(blank=True, null=True)&lt;/span&gt;
-&lt;span class="x"&gt;    rent_oac = models.BooleanField(default=False)&lt;/span&gt;
-&lt;span class="x"&gt;    rent_call_for_details = models.BooleanField(default=False)&lt;/span&gt;
-&lt;span class="x"&gt;    rent_up_to = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;class SecondForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
 
-&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
-&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
-
-&lt;span class="x"&gt;    def clean(self):&lt;/span&gt;
-&lt;span class="x"&gt;        super(Rent, self).clean()&lt;/span&gt;
-&lt;span class="x"&gt;        if self.rent_high and self.rent_high &amp;lt;= self.rent_low:&lt;/span&gt;
-&lt;span class="x"&gt;            raise ValidationError(&amp;quot;Invalid rent range.&amp;quot;)&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_percent_income or self.rent_call_for_details or \&lt;/span&gt;
-&lt;span class="x"&gt;           self.rent_up_to:&lt;/span&gt;
-
-&lt;span class="x"&gt;            self.rent_low = 0&lt;/span&gt;
-&lt;span class="x"&gt;            self.rent_high = None&lt;/span&gt;
-
-&lt;span class="x"&gt;    @property&lt;/span&gt;
-&lt;span class="x"&gt;    def rent(self):&lt;/span&gt;
-&lt;span class="x"&gt;        if self.rent_call_for_details:&lt;/span&gt;
-&lt;span class="x"&gt;            return u&amp;quot;Call for details.&amp;quot;&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_up_to:&lt;/span&gt;
-&lt;span class="x"&gt;            return u&amp;quot;Up to $%d&amp;quot; % self.rent_up_to&lt;/span&gt;
-
-&lt;span class="x"&gt;        response = &amp;quot;&amp;quot;&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_percent_income:&lt;/span&gt;
-&lt;span class="x"&gt;            response += u&amp;quot;%g%% of income.&amp;quot; % self.rent_percent_income&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_high:&lt;/span&gt;
-&lt;span class="x"&gt;            response +=  u&amp;quot;%d-%d&amp;quot; % (self.rent_low, self.rent_high)&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_low &amp;gt; 0 and not self.rent_high:&lt;/span&gt;
-&lt;span class="x"&gt;            response += u&amp;quot;%d&amp;quot; % self.rent_low&lt;/span&gt;
-
-&lt;span class="x"&gt;        if self.rent_oac:&lt;/span&gt;
-&lt;span class="x"&gt;            response += &amp;quot; On approved credit.&amp;quot;&lt;/span&gt;
-
-&lt;span class="x"&gt;        return response&lt;/span&gt;
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 thorugh field20]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;The one &amp;quot;gotcha&amp;quot; here, that you may not get right away, is the &lt;tt class="docutils literal"&gt;super(Rent, &lt;span class="pre"&gt;self).clean()&lt;/span&gt;&lt;/tt&gt; at the top of the &lt;tt class="docutils literal"&gt;clean()&lt;/tt&gt;. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; and the other extended models (as mentioned, we have several models created and used this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; that we can call on the extending models to get the computed rent value.&lt;/p&gt;
-&lt;p&gt;That property doesn't do anything really interesting except return a value based on the field values. The clean is a little more interesting for how it sets &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; to 0 and empties out &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; when their values no longer matter.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="form"&gt;
-&lt;h2&gt;Form&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;from django.core.validators import RegexValidator
+&lt;p&gt;Obviously that was a lot of repetition that we could cut out now that these inheritable layouts exist. By the way, I'm pretty sure this would have been possible in &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; but likely not as friendly.&lt;/p&gt;
+&lt;p&gt;First I started off by creating the shared resources. I made two of them since our special fields come in the middle of our layouts.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;form_intro_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field2&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
 
-[...]
-
-integer_range = RegexValidator(
-    regex=re.compile(r&amp;quot;^[0-9]*(-[0-9]*)?$&amp;quot;),
-    message=&amp;quot;Please enter a valid number, or a range in the format: 100-200&amp;quot;,
-    code=&amp;quot;invalid&amp;quot;
-)
-
-
-class FloorplanBaseForm(CommunityKwargModelFormMixin, UserKwargModelFormMixin,
-    forms.ModelForm):
-
-    rent = forms.CharField(max_length=75, required=False,
-        validators=[integer_range])
-
-    class Meta:
-        model = Floorplan
-
-
-    def __init__(self, *args, **kwargs):
-        super(FloorplanBaseForm, self).__init__(*args, **kwargs)
-
-        [...]
-
-        if self.instance.pk:
-            set_custom_fields(self, [&amp;quot;rent&amp;quot;, &amp;quot;deposit&amp;quot;, &amp;quot;promo&amp;quot;, &amp;quot;sq_ft&amp;quot;])
-
-    def clean(self):
-        super(FloorplanBaseForm, self).clean()
-        data = self.cleaned_data
-
-        [...]
-
-        if data.get(&amp;quot;rent&amp;quot;, None) and not data[&amp;quot;rent_call_for_details&amp;quot;] and not\
-            data[&amp;quot;rent_percent_income&amp;quot;] and not data[&amp;quot;rent_up_to&amp;quot;]:
-
-            split_ranges(self, &amp;quot;rent&amp;quot;)
-
-        clean_custom_fields(self, data, [&amp;quot;rent&amp;quot;, &amp;quot;rent_call_for_details&amp;quot;,
-            &amp;quot;rent_up_to&amp;quot;, &amp;quot;rent_percent_income&amp;quot;],
-            &amp;quot;You must enter a value for rent.&amp;quot;, &amp;quot;rent&amp;quot;)
-
-        return data
+&lt;span class="n"&gt;form_common_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field3&lt;/span&gt; &lt;span class="n"&gt;through&lt;/span&gt; &lt;span class="n"&gt;field20&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;I've removed bits of the form that deal with other fields like &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; since I'm not showing anything about them. This is, more or less, an abstract form. We never render it, but we extend it to support our specific floorplan types. In those extending forms, we tell &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; to be excluded. In this form, though, we provide a single &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field that has a regular expression validator on it to ensure that it contains an interger or two integers separated by a hyphen. This lets the users enter data as more-or-less natural text instead of having to tab through a bunch of fields or enter the data in a weird format.&lt;/p&gt;
-&lt;p&gt;You'll notice three custom methods being called, &lt;tt class="docutils literal"&gt;set_custom_fields&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;clean_custom_fields&lt;/tt&gt;. We'll cover them next.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="custom-methods"&gt;
-&lt;h2&gt;Custom methods&lt;/h2&gt;
-&lt;p&gt;Let's go over these one at a time.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def clean_custom_fields(form, cleaned_data, fields, error_msg, field):&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    Make sure at least one required option has been supplied.&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    if not any([cleaned_data.get(f, None) for f in fields]):&lt;/span&gt;
-&lt;span class="x"&gt;        form.errors[field] = form.error_class([error_msg])&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The &lt;tt class="docutils literal"&gt;any&lt;/tt&gt; method from the Python standard library is amazingly useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.&lt;/p&gt;
-&lt;p&gt;Next is the &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt; field.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def split_ranges(form, field):&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    Split custom range fields into model fields.&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    try:&lt;/span&gt;
-&lt;span class="x"&gt;        low, high = form.cleaned_data[field].split(&amp;quot;-&amp;quot;)&lt;/span&gt;
-&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(low))&lt;/span&gt;
-&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, int(high))&lt;/span&gt;
-&lt;span class="x"&gt;    except ValueError:&lt;/span&gt;
-&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(form.cleaned_data[field]))&lt;/span&gt;
-&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, None)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;This small little method takes our unified field in the form and splits it out into the &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;low&lt;/tt&gt; fields on the model. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.&lt;/p&gt;
-&lt;p&gt;Also, notice how we use the &lt;tt class="docutils literal"&gt;ValueError&lt;/tt&gt; that'll be thrown by not having a &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; value to set on the form to trigger it being set to &lt;tt class="docutils literal"&gt;None&lt;/tt&gt;, exactly what our model is expecting already.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def set_custom_fields(form, fields):&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    Combine low/high fields into the range fields.&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-&lt;span class="x"&gt;    for field in fields:&lt;/span&gt;
-&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
-&lt;span class="x"&gt;            form.fields[field].initial = u&amp;quot;%d-%d&amp;quot; % (&lt;/span&gt;
-&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
-&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_high&amp;quot;)&lt;/span&gt;
-&lt;span class="x"&gt;            )&lt;/span&gt;
+&lt;p&gt;And I added them each into my forms. I'm only going to show one form but you'll get the idea.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;self.form_intro_layout = form_intro_layout&lt;/span&gt;
+&lt;span class="x"&gt;self.form_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
 
-&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_low&amp;quot;, None) &amp;gt; 0 and not \&lt;/span&gt;
-&lt;span class="x"&gt;            getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
-
-&lt;span class="x"&gt;            form.fields[field].initial = gettar(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;    self.form_intro_layout,&lt;/span&gt;
+&lt;span class="x"&gt;    form_common_layout&lt;/span&gt;
+&lt;span class="x"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered.&lt;/p&gt;
-&lt;p&gt;So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.&lt;/p&gt;
-&lt;p&gt;Hopefully this gives you some ideas on how to make forms more user-friendly while maintaining solid model data on the backend. If you see something we could be doing better, please let us know in the comments.&lt;/p&gt;
-&lt;p&gt;Thanks to Kevin Diale for pointing out our oversight on &lt;tt class="docutils literal"&gt;getattr&lt;/tt&gt;/&lt;tt class="docutils literal"&gt;setattr&lt;/tt&gt;.&lt;/p&gt;
-&lt;/div&gt;
-</summary><category term="django"></category><category term="python"></category><category term="forms"></category><category term="models"></category></entry><entry><title>What We Use</title><link href="http://brack3t.com/what-we-use.html" rel="alternate"></link><updated>2012-03-05T14:58:02Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-03-05:/what-we-use.html/</id><summary type="html">&lt;p&gt;We've noticed several people publishing lists of what they use to do their work lately, so we thought we'd join in.
-Below are the tools we use nearly every day to do our work. If you don't know, our work is the entire stack,
-from setting up servers, to &lt;a class="reference external" href="http://djangoproject.com"&gt;Django&lt;/a&gt; and &lt;a class="reference external" href="http://python.org"&gt;Python&lt;/a&gt; programming, to front-end web development and design. Obviously,
-with such a large area of work, we end up using a lot of different products and libraries, so, below is a list of our
-most common items.&lt;/p&gt;
-&lt;div class="contents topic" id="contents"&gt;
-&lt;p class="topic-title first"&gt;Contents&lt;/p&gt;
-&lt;ul class="simple"&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#vim" id="id5"&gt;VIM&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#firefox" id="id6"&gt;Firefox&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#iterm-2" id="id7"&gt;iTerm 2&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#tmux" id="id8"&gt;Tmux&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#homebrew" id="id9"&gt;Homebrew&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#skype" id="id10"&gt;Skype&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#screen-sharing" id="id11"&gt;Screen Sharing&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#balsamiq" id="id12"&gt;Balsamiq&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#favorite-libraries-and-frameworks" id="id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a class="reference internal" href="#summary" id="id14"&gt;Summary&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;div class="section" id="vim"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id5"&gt;VIM&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;Do I really need to say anything about VIM? It's an amazing text editor and handles everything we need it to handle, from Django to HTML to &lt;a class="reference external" href="http://lesscss.org"&gt;LESS&lt;/a&gt; to Javascript and these blog posts (which are all done in &lt;a class="reference external" href="http://docutils.sourceforge.net/rst.html"&gt;RestructuredText&lt;/a&gt; and published with &lt;a class="reference external" href="http://pelican.readthedocs.org/en/2.7.2/index.html"&gt;Pelican&lt;/a&gt;). Yes, it has a steep learning curve but that can be pretty easily mitigated by starting with a GUI version (like &lt;a class="reference external" href="http://www.vim.org/download.php#pc"&gt;gVim&lt;/a&gt; or &lt;a class="reference external" href="https://github.com/b4winckler/macvim"&gt;MacVim&lt;/a&gt;) and mapping controls to settings you're used to. Use nothing else for a week or two and you'll be back to your old speed, if not faster.&lt;/p&gt;
-&lt;p&gt;There are a few plugins that we want to highlight, too.&lt;/p&gt;
-&lt;div class="section" id="plugins"&gt;
-&lt;h3&gt;Plugins&lt;/h3&gt;
-&lt;p&gt;First up is &lt;a class="reference external" href="https://github.com/kien/ctrlp.vim"&gt;Ctrl-P&lt;/a&gt;. It's a fuzzy file finder that'll search your tree. One of the handiest features is the &lt;tt class="docutils literal"&gt;ctrlp_working_path_mode&lt;/tt&gt; setting when it's set to &lt;tt class="docutils literal"&gt;2&lt;/tt&gt;, which makes the search start at the nearest ancestor with a version control file/folder in it, such as the &lt;tt class="docutils literal"&gt;.git&lt;/tt&gt; folder. It will ignore files you tell it to ignore and can search based on most-recently-used or through ctags, which would let you find a file based on classes or methods it contains.&lt;/p&gt;
-&lt;p&gt;Next is the complementary plugin, &lt;a class="reference external" href="https://github.com/scrooloose/nerdtree"&gt;NERDTree&lt;/a&gt;. We don't use it as much as we used to, now that we've switched to Ctrl-P, but it still gets a fair amount of usage. It's basically equivalent to TextMate or Sublime Text 2's project browser feature. Not much to explain here, but we do end up spending a fair amount of time in it.&lt;/p&gt;
-&lt;p&gt;We also use &lt;a class="reference external" href="https://github.com/jeetsukumaran/vim-buffergator"&gt;Buffergator&lt;/a&gt; a lot since we tend to jump between a lot of files throughout the day. Buffergator lets you quickly see all of your buffer, sorted in a couple of different ways (MRU and buffer number are the two modes we use most) and will let you preview a buffer without switching to it, which is pretty handy when you find out that all of our apps contain two view files named &lt;tt class="docutils literal"&gt;backend.py&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;frontend.py&lt;/tt&gt; and two urls files named the same and, potentially, two files of APIs named the same too (we like naming schemes, OK?).&lt;/p&gt;
-&lt;p&gt;For eye-candy, we also love the &lt;a class="reference external" href="https://github.com/Lokaltog/vim-powerline"&gt;Powerline&lt;/a&gt; plugin. It gives an awesome statusline effect and makes you feel cool, which is so rare for us nerdy types. Right, guys? Right?&lt;/p&gt;
-&lt;p&gt;Since we write a lot of different languages, having syntax checking is really important. We use &lt;a class="reference external" href="https://github.com/scrooloose/syntastic"&gt;Syntastic&lt;/a&gt; to check all of our files for erros, and that requires us to have PyFlakes or PyLint installed system-wide, for checking Python. We also install Tidy (from Homebrew) for checking HTML and gjslist (Google's JSLint) or the standard JSLint installed for checking Javascript.&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="section" id="firefox"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id6"&gt;Firefox&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;I know, I know, Chrome is the big browser on the block. And Safari is master of the mobile arena. But we both really like Firefox. Two main reasons, I think. One, &lt;a class="reference external" href="http://getfirebug.com/"&gt;Firebug&lt;/a&gt; is still the best inspector on the market, at least in my experience (and the Web Developer Toolbar's option to turn off cache isn't replicated in Safari at all). Secondly, &lt;a class="reference external" href="http://dactyl.sourceforge.net/pentadactyl/"&gt;Pentadactyl&lt;/a&gt; is unmatched in any other browser, bar none.&lt;/p&gt;
-&lt;p&gt;That said, we both use Chrome and Safari for testing sites, holding on to multiple logins, and testing out Socket.IO and the like. We just use Firefox for standard browsing.&lt;/p&gt;
-&lt;p&gt;Chris doesn't make use of it, but I definitely use the hell out of Firefox's tab groups, too. If you haven't tried out this feature, hit &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Cmd-Shift-E&lt;/span&gt;&lt;/tt&gt; (or likely &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Ctrl-Shift-E&lt;/span&gt;&lt;/tt&gt; for you PC types) and check it out. Amazingly handy when you work on a lot of projects or need to keep several browsing trains of thought running at the same time. I really wish they had a way to unload a group of tabs from memory, though. That's all it's missing.&lt;/p&gt;
-&lt;div class="section" id="addons"&gt;
-&lt;h3&gt;Addons&lt;/h3&gt;
-&lt;p&gt;As mentioned, we both use the hell out of Firebug. We also use Pentadactyl a lot. You all should know Firebug, so I'll talk about Pentadactyl for a bit. Since we're both big VIM users, Pentadactyl lets us use our keyboards for most of the browsing we do. We can open new tabs with &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; or just go to a new URL in the current one with &lt;tt class="docutils literal"&gt;o&lt;/tt&gt;. We both set &lt;a class="reference external" href="http://duckduckgo.com"&gt;DuckDuckGo&lt;/a&gt; as our default search engines, too, so a quick &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; followed by &lt;tt class="docutils literal"&gt;!django &amp;lt;search term here&amp;gt;&lt;/tt&gt; lets us quickly look up documentation.&lt;/p&gt;
-&lt;p&gt;I mentioned the &lt;a class="reference external" href="https://addons.mozilla.org/en-US/firefox/addon/web-developer/"&gt;Web Developer Toolbar&lt;/a&gt; earlier too. We don't make extensive use of all of its features, but we do use the cache disable and browser resizing features. Before Firebug and some other addons were around, though, it was a killer addon to have for its ability to inspect CSS.&lt;/p&gt;
-&lt;p&gt;The last addon that we made a lot of use of is &lt;a class="reference external" href="http://lackoftalent.org/michael/blog/json-in-firefox/"&gt;JSONovich&lt;/a&gt; which enables a pretty display of JSON in Firefox. If you end up having to look at a lot of JSON all day long (like, say, when you're working with Tastypie), it's really useful to have a nice view.&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="section" id="iterm-2"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;iTerm 2&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;The terminal that comes with Mac OS X Lion is great, but we both had some display weirdnesses when it was coupled with Tmux and our VIM setups. &lt;a class="reference external" href="http://www.iterm2.com/"&gt;iTerm&lt;/a&gt; didn't have any of those issues (but it did bring around a new one with the pastebin). It looks good, works well, and supports native splitting. The newest version introduced support for a custom version of Tmux, but neither of us have tried that out yet. If/when we do, we'll probably write something about it.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="tmux"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id8"&gt;Tmux&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;Ah, &lt;a class="reference external" href="http://tmux.sourceforge.net/"&gt;Tmux&lt;/a&gt;. If you don't know what it is, you should. It's a terminal multiplexer with is a long way of saying it lets you split one terminal window into lots of terminal windows, both as whole new windows (groups of panes) and individual panes. We end up running several servers to do our work, so being able to see and control all the servers in one Tmux window is amazingly handy.&lt;/p&gt;
-&lt;p&gt;I use &lt;a class="reference external" href="https://github.com/aziz/tmuxinator"&gt;Tmuxinator&lt;/a&gt;, too, to automate the creating of windows and panes for projects. You write a YAML file with rules for what windows and panes you want and what you want ran in each pane, then run &lt;tt class="docutils literal"&gt;tmuxinator start &amp;lt;project name&amp;gt;&lt;/tt&gt; and you're up and running.&lt;/p&gt;
-&lt;p&gt;Also, when working on servers, Tmux makes it really easy to attach to an existing session and you can watch or work in tandem with another developer.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="homebrew"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id9"&gt;Homebrew&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;&lt;a class="reference external" href="http://mxcl.github.com/homebrew/"&gt;Homebrew&lt;/a&gt; is probably something we don't even need to mention. It's like &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;apt-get&lt;/span&gt;&lt;/tt&gt; or &lt;tt class="docutils literal"&gt;pacman&lt;/tt&gt; for your Mac, which means it'll let you install UNIX and Linux packages for your Mac through an easy command-line interface. You can even, with a bit of tinkering, install libraries that already come with your Mac, so if you need that bleeding-edge version of Ruby or Python, it's simple to install or uninstall.&lt;/p&gt;
-&lt;p&gt;We've written a couple of Homebrew recipes for internal use at our main client and that has definitely helped with keeping the team using the same packages and versions, regardless of machine or technical aptitude.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="skype"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id10"&gt;Skype&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;I won't bother to link to Skype, I'm sure you already have it installed. We use it all day every day, though, since Chris and I pair program probably 98% of the day. Skype is how we conduct almost all of our client meetings and we talk through it all day ourselves. It's not a perfect system but it works really well and is less taxing on our machines than Google Hangouts.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="screen-sharing"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id11"&gt;Screen Sharing&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;Yes, the built-in Screen Sharing on your Mac (go find it in your Finder, it's at &lt;tt class="docutils literal"&gt;System &amp;gt; Library &amp;gt; CoreServices&lt;/tt&gt; and stick it in your Dock). This, combined with Skype, a VPN or DynDNS url, and a couple of opened ports and you have a quick and easy way to do pair programming remotely. Set it to start in Observe Mode and you don't have to worry about disturbing the person you're working with either.&lt;/p&gt;
-&lt;div class="section" id="dyndns"&gt;
-&lt;h3&gt;DynDNS&lt;/h3&gt;
-&lt;p&gt;Chris and I each have a free domain name with &lt;a class="reference external" href="http://dyndns.org"&gt;DynDNS&lt;/a&gt; that we point to our machines through our routers and open up for web hosting (port 80) and screen sharing (the typical VNC ports). That way we can just point screen sharing to the URL and we're connected, no remembering IPs or having to look them up through the Network control panel or the terminal. Not a ground-breaking hint by any means but definitely one that has saved us time.&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="section" id="balsamiq"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id12"&gt;Balsamiq&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;We use &lt;a class="reference external" href="http://www.balsamiq.com/"&gt;Balsamiq&lt;/a&gt; for mocking up interfaces before we build them. Most of our work currently is replacing existing interfaces, used by a fair-sized team for years, with new, better, smarter ones. We plan out most of them before we start to build them and vet them with the people that will be using them. Balsamiq gives us a great, low-fidelity version we can show people that doesn't lead them to make too many assumptions about appearance or advanced functionality.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="favorite-libraries-and-frameworks"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;As far as favorite frameworks go, I'll give you three guesses which one is our favorite and the first two guesses don't count. We use Django for pretty much everything and haven't seen a reason to move away from it yet. But we don't live or work in a vacuum, so we've had to add a lot of other items to our repetoire.&lt;/p&gt;
-&lt;p&gt;&lt;a class="reference external" href="http://nginx.org"&gt;Nginx&lt;/a&gt; is our web server of choice. It's fast, lightweight, and really easy to set up. We'll write up our crazy workflow with Nginx, Lua, Redis, and Scrapy soon.&lt;/p&gt;
-&lt;p&gt;For DOM manipulation, we use jQuery. It's solid and dependable.&lt;/p&gt;
-&lt;p&gt;For Javascript MVC, we use &lt;a class="reference external" href="http://backbonejs.org"&gt;BackboneJS&lt;/a&gt;. It may not be the newest or most fancy of the MVC frameworks, but we've come to understand it somewhat well, it works reliably with &lt;a class="reference external" href="http://tastypieapi.org"&gt;Tastypie&lt;/a&gt;, and uses the awesome Underscore.js library. Sadly, we haven't been able to make extensive use of Backbone yet, but we hope to change that in the near future.&lt;/p&gt;
-&lt;p&gt;Last but not least, for design, we both definitely love the Twitter &lt;a class="reference external" href="http://twitter.github.com/bootstrap"&gt;Bootstrap&lt;/a&gt; collection. It's a great starting point for web design and really helps you get to creating the product instead of worrying about what it looks like.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div class="section" id="summary"&gt;
-&lt;h2&gt;&lt;a class="toc-backref" href="#id14"&gt;Summary&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;I think that pretty much covers the tools and libraries we end up touching in our day-to-day work. Our work and requirements are constantly changing, though, so this post might be one that we need to revist every six months or year. If you have any suggestions for new products to check out, or ways we can make our current favorites even better, let us know on Twitter or in the comments below. Thanks for reading.&lt;/p&gt;
-&lt;/div&gt;
-</summary><category term="workflow"></category><category term="tools"></category></entry><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-03-02T13:30:34Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-03-02:/our-custom-mixins.html/</id><summary type="html">&lt;p&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;: We've released a &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github repo&lt;/a&gt; and a &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0"&gt;PyPI package&lt;/a&gt; with our mixins. Feel free to fork and submit new ones through a pull-request.&lt;/p&gt;
+&lt;p&gt;And, display-wise, it worked fine. This is, ideally, exactly what you do to extend these layouts. &lt;strong&gt;But&lt;/strong&gt;, this causes problems in testing.&lt;/p&gt;
+&lt;p&gt;We test all of our views, models, and forms. The form tests passed fine, but some of the view tests were throwing up warnings about fields being referenced more than once and, for example, &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;special-field2&lt;/span&gt;&lt;/tt&gt; missing
+from &lt;tt class="docutils literal"&gt;FirstForm&lt;/tt&gt;. Obviously something was up with the inheritance and with how I was instantiating objects.&lt;/p&gt;
+&lt;p&gt;My next step was to stop using &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; on the instance-specific versions of the generic layouts and just give them a local name like &lt;tt class="docutils literal"&gt;standard_intro_layout&lt;/tt&gt; (the &lt;tt class="docutils literal"&gt;standard&lt;/tt&gt; name makes more sense internally and its
+meaning isn't important for this example), but that didn't stop the errors. It did, however, still work fine visually.&lt;/p&gt;
+&lt;p&gt;I tried using a &lt;tt class="docutils literal"&gt;.copy()&lt;/tt&gt; method on the layout, but that doesn't exist. So I turned to the &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; module of Python, specifically the &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt; method. I tried with just the standard &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; method, but it had
+the same effect of working visually, but throwing warnings on tests.&lt;/p&gt;
+&lt;p&gt;The new version looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from copy import deepcopy&lt;/span&gt;
+
+&lt;span class="x"&gt;standard_intro_layout = deepcopy(form_intro_layout)&lt;/span&gt;
+&lt;span class="x"&gt;standard_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That works perfectly! It still appears the same visually, like all the methods have, and it also quiets the tests so they pass without warnings.&lt;/p&gt;
+&lt;p&gt;Unless someone knows of a reason I shouldn't use &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt;, this seems to be the way to solve this problem. I'm also not sure if it was the &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; (which I doubt, since I removed it and the warnings still
+happened), or the fact that both forms extend the same abstract form, or some other variable that led to the problem. Regardless, I'm happy to have solved it.&lt;/p&gt;
+</summary><category term="django"></category><category term="django-crispy-forms"></category><category term="tip"></category></entry><entry><title>Our Custom Mixins</title><link href="http://brack3t.com/our-custom-mixins.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2012-06-26:our-custom-mixins.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;: We've released a &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github repo&lt;/a&gt; and a &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0"&gt;PyPI package&lt;/a&gt; with our mixins. Feel free to fork and submit new ones through a pull-request.&lt;/p&gt;
 &lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
 thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still
 lacking but I find a lot of people, especially on &lt;a class="reference external" href="http://reddit.com/r/django"&gt;Reddit&lt;/a&gt;, refuse to use them. For whatever reason, it's a hard
@@ -713,73 +536,250 @@ straightforward and works much like Django's built-in &lt;tt class="docutils lit
 Writing custom mixins helps to alleviate pain points in your project and make it faster to create new features, at least is has for us. If you have
 any questions, leave a comment or hit us up on Twitter.&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="django"></category><category term="CBVs"></category></entry><entry><title>Generic Layouts in Crispy Forms</title><link href="http://brack3t.com/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-02-29T18:11:15Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-29:/generic-layouts-in-crispy-forms.html/</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
-&lt;p&gt;This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt;. It's a pretty painless
-transition, actually. Just do some find-and-replace across your files, basically changing any instance of &lt;tt class="docutils literal"&gt;uni-&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;crispy-&lt;/tt&gt; (well, and &lt;tt class="docutils literal"&gt;form&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;forms&lt;/tt&gt;), and you're good to go. Then, however, I wanted to
-convert two large forms that we have, which share 90% of their fields, to using the sharable &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; objects that &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt; gives us.&lt;/p&gt;
-&lt;p&gt;Basically, the forms looked like this:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class FirstForm(GenericAppFormForTheExample):&lt;/span&gt;
-&lt;span class="x"&gt;    ...&lt;/span&gt;
+</summary><category term="django"></category><category term="CBVs"></category></entry><entry><title>User-friendlier model forms</title><link href="http://brack3t.com/user-friendlier-model-forms.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-06-26:user-friendlier-model-forms.html</id><summary type="html">&lt;p&gt;Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &amp;quot;call for details&amp;quot; or &amp;quot;on approved credit&amp;quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.&lt;/p&gt;
+&lt;div class="section" id="model"&gt;
+&lt;h2&gt;Model&lt;/h2&gt;
+&lt;p&gt;Let's go over our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model first. It's an abstract model so we can use it in multiple places (we have more than one logical model in the system that needs to deal with rent, this way we can use it multiple places without having to hold on to a huge amount of joins). We have several other abstract models that perform the same actions as our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model, but I won't show them here.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.core.exceptions import ValidationError&lt;/span&gt;
+&lt;span class="x"&gt;from django.db import models&lt;/span&gt;
 
-&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
-&lt;span class="x"&gt;        ...&lt;/span&gt;
-&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
-&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;special-field&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            [field3 through field20]&lt;/span&gt;
 
-&lt;span class="x"&gt;class SecondForm(GenericAppFormForTheExample):&lt;/span&gt;
-&lt;span class="x"&gt;    ...&lt;/span&gt;
+&lt;span class="x"&gt;class Rent(models.Model):&lt;/span&gt;
+&lt;span class="x"&gt;    rent_low = models.PositiveIntegerField()&lt;/span&gt;
+&lt;span class="x"&gt;    rent_high = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_percent_income = models.FloatField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_oac = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_call_for_details = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_up_to = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
 
-&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
-&lt;span class="x"&gt;        ...&lt;/span&gt;
-&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
-&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            &amp;quot;special-field2&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;            [field3 thorugh field20]&lt;/span&gt;
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
+
+&lt;span class="x"&gt;    def clean(self):&lt;/span&gt;
+&lt;span class="x"&gt;        super(Rent, self).clean()&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_high and self.rent_high &amp;lt;= self.rent_low:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ValidationError(&amp;quot;Invalid rent range.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income or self.rent_call_for_details or \&lt;/span&gt;
+&lt;span class="x"&gt;           self.rent_up_to:&lt;/span&gt;
+
+&lt;span class="x"&gt;            self.rent_low = 0&lt;/span&gt;
+&lt;span class="x"&gt;            self.rent_high = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def rent(self):&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_call_for_details:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Call for details.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_up_to:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Up to $%d&amp;quot; % self.rent_up_to&lt;/span&gt;
+
+&lt;span class="x"&gt;        response = &amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%g%% of income.&amp;quot; % self.rent_percent_income&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response +=  u&amp;quot;%d-%d&amp;quot; % (self.rent_low, self.rent_high)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_low &amp;gt; 0 and not self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%d&amp;quot; % self.rent_low&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_oac:&lt;/span&gt;
+&lt;span class="x"&gt;            response += &amp;quot; On approved credit.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        return response&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Obviously that was a lot of repetition that we could cut out now that these inheritable layouts exist. By the way, I'm pretty sure this would have been possible in &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; but likely not as friendly.&lt;/p&gt;
-&lt;p&gt;First I started off by creating the shared resources. I made two of them since our special fields come in the middle of our layouts.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;form_intro_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-    &lt;span class="s"&gt;&amp;quot;field1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s"&gt;&amp;quot;field2&amp;quot;&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;p&gt;The one &amp;quot;gotcha&amp;quot; here, that you may not get right away, is the &lt;tt class="docutils literal"&gt;super(Rent, &lt;span class="pre"&gt;self).clean()&lt;/span&gt;&lt;/tt&gt; at the top of the &lt;tt class="docutils literal"&gt;clean()&lt;/tt&gt;. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; and the other extended models (as mentioned, we have several models created and used this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; that we can call on the extending models to get the computed rent value.&lt;/p&gt;
+&lt;p&gt;That property doesn't do anything really interesting except return a value based on the field values. The clean is a little more interesting for how it sets &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; to 0 and empties out &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; when their values no longer matter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="form"&gt;
+&lt;h2&gt;Form&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;from django.core.validators import RegexValidator
 
-&lt;span class="n"&gt;form_common_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field3&lt;/span&gt; &lt;span class="n"&gt;through&lt;/span&gt; &lt;span class="n"&gt;field20&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;And I added them each into my forms. I'm only going to show one form but you'll get the idea.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;self.form_intro_layout = form_intro_layout&lt;/span&gt;
-&lt;span class="x"&gt;self.form_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+[...]
 
-&lt;span class="x"&gt;self.helper.layout = Layout(&lt;/span&gt;
-&lt;span class="x"&gt;    self.form_intro_layout,&lt;/span&gt;
-&lt;span class="x"&gt;    form_common_layout&lt;/span&gt;
-&lt;span class="x"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;And, display-wise, it worked fine. This is, ideally, exactly what you do to extend these layouts. &lt;strong&gt;But&lt;/strong&gt;, this causes problems in testing.&lt;/p&gt;
-&lt;p&gt;We test all of our views, models, and forms. The form tests passed fine, but some of the view tests were throwing up warnings about fields being referenced more than once and, for example, &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;special-field2&lt;/span&gt;&lt;/tt&gt; missing
-from &lt;tt class="docutils literal"&gt;FirstForm&lt;/tt&gt;. Obviously something was up with the inheritance and with how I was instantiating objects.&lt;/p&gt;
-&lt;p&gt;My next step was to stop using &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; on the instance-specific versions of the generic layouts and just give them a local name like &lt;tt class="docutils literal"&gt;standard_intro_layout&lt;/tt&gt; (the &lt;tt class="docutils literal"&gt;standard&lt;/tt&gt; name makes more sense internally and its
-meaning isn't important for this example), but that didn't stop the errors. It did, however, still work fine visually.&lt;/p&gt;
-&lt;p&gt;I tried using a &lt;tt class="docutils literal"&gt;.copy()&lt;/tt&gt; method on the layout, but that doesn't exist. So I turned to the &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; module of Python, specifically the &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt; method. I tried with just the standard &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; method, but it had
-the same effect of working visually, but throwing warnings on tests.&lt;/p&gt;
-&lt;p&gt;The new version looked like this:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from copy import deepcopy&lt;/span&gt;
+integer_range = RegexValidator(
+    regex=re.compile(r&amp;quot;^[0-9]*(-[0-9]*)?$&amp;quot;),
+    message=&amp;quot;Please enter a valid number, or a range in the format: 100-200&amp;quot;,
+    code=&amp;quot;invalid&amp;quot;
+)
 
-&lt;span class="x"&gt;standard_intro_layout = deepcopy(form_intro_layout)&lt;/span&gt;
-&lt;span class="x"&gt;standard_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
-&lt;span class="x"&gt;...&lt;/span&gt;
+
+class FloorplanBaseForm(CommunityKwargModelFormMixin, UserKwargModelFormMixin,
+    forms.ModelForm):
+
+    rent = forms.CharField(max_length=75, required=False,
+        validators=[integer_range])
+
+    class Meta:
+        model = Floorplan
+
+
+    def __init__(self, *args, **kwargs):
+        super(FloorplanBaseForm, self).__init__(*args, **kwargs)
+
+        [...]
+
+        if self.instance.pk:
+            set_custom_fields(self, [&amp;quot;rent&amp;quot;, &amp;quot;deposit&amp;quot;, &amp;quot;promo&amp;quot;, &amp;quot;sq_ft&amp;quot;])
+
+    def clean(self):
+        super(FloorplanBaseForm, self).clean()
+        data = self.cleaned_data
+
+        [...]
+
+        if data.get(&amp;quot;rent&amp;quot;, None) and not data[&amp;quot;rent_call_for_details&amp;quot;] and not\
+            data[&amp;quot;rent_percent_income&amp;quot;] and not data[&amp;quot;rent_up_to&amp;quot;]:
+
+            split_ranges(self, &amp;quot;rent&amp;quot;)
+
+        clean_custom_fields(self, data, [&amp;quot;rent&amp;quot;, &amp;quot;rent_call_for_details&amp;quot;,
+            &amp;quot;rent_up_to&amp;quot;, &amp;quot;rent_percent_income&amp;quot;],
+            &amp;quot;You must enter a value for rent.&amp;quot;, &amp;quot;rent&amp;quot;)
+
+        return data
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;That works perfectly! It still appears the same visually, like all the methods have, and it also quiets the tests so they pass without warnings.&lt;/p&gt;
-&lt;p&gt;Unless someone knows of a reason I shouldn't use &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt;, this seems to be the way to solve this problem. I'm also not sure if it was the &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; (which I doubt, since I removed it and the warnings still
-happened), or the fact that both forms extend the same abstract form, or some other variable that led to the problem. Regardless, I'm happy to have solved it.&lt;/p&gt;
-</summary><category term="django"></category><category term="django-crispy-forms"></category><category term="tip"></category></entry><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:/change-request-workflow.html/</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
+&lt;p&gt;I've removed bits of the form that deal with other fields like &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; since I'm not showing anything about them. This is, more or less, an abstract form. We never render it, but we extend it to support our specific floorplan types. In those extending forms, we tell &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; to be excluded. In this form, though, we provide a single &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field that has a regular expression validator on it to ensure that it contains an interger or two integers separated by a hyphen. This lets the users enter data as more-or-less natural text instead of having to tab through a bunch of fields or enter the data in a weird format.&lt;/p&gt;
+&lt;p&gt;You'll notice three custom methods being called, &lt;tt class="docutils literal"&gt;set_custom_fields&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;clean_custom_fields&lt;/tt&gt;. We'll cover them next.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="custom-methods"&gt;
+&lt;h2&gt;Custom methods&lt;/h2&gt;
+&lt;p&gt;Let's go over these one at a time.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def clean_custom_fields(form, cleaned_data, fields, error_msg, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Make sure at least one required option has been supplied.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    if not any([cleaned_data.get(f, None) for f in fields]):&lt;/span&gt;
+&lt;span class="x"&gt;        form.errors[field] = form.error_class([error_msg])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The &lt;tt class="docutils literal"&gt;any&lt;/tt&gt; method from the Python standard library is amazingly useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.&lt;/p&gt;
+&lt;p&gt;Next is the &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt; field.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def split_ranges(form, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Split custom range fields into model fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    try:&lt;/span&gt;
+&lt;span class="x"&gt;        low, high = form.cleaned_data[field].split(&amp;quot;-&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(low))&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, int(high))&lt;/span&gt;
+&lt;span class="x"&gt;    except ValueError:&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(form.cleaned_data[field]))&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, None)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This small little method takes our unified field in the form and splits it out into the &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;low&lt;/tt&gt; fields on the model. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.&lt;/p&gt;
+&lt;p&gt;Also, notice how we use the &lt;tt class="docutils literal"&gt;ValueError&lt;/tt&gt; that'll be thrown by not having a &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; value to set on the form to trigger it being set to &lt;tt class="docutils literal"&gt;None&lt;/tt&gt;, exactly what our model is expecting already.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def set_custom_fields(form, fields):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Combine low/high fields into the range fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    for field in fields:&lt;/span&gt;
+&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
+&lt;span class="x"&gt;            form.fields[field].initial = u&amp;quot;%d-%d&amp;quot; % (&lt;/span&gt;
+&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_high&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;            )&lt;/span&gt;
+
+&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_low&amp;quot;, None) &amp;gt; 0 and not \&lt;/span&gt;
+&lt;span class="x"&gt;            getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
+
+&lt;span class="x"&gt;            form.fields[field].initial = gettar(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered.&lt;/p&gt;
+&lt;p&gt;So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.&lt;/p&gt;
+&lt;p&gt;Hopefully this gives you some ideas on how to make forms more user-friendly while maintaining solid model data on the backend. If you see something we could be doing better, please let us know in the comments.&lt;/p&gt;
+&lt;p&gt;Thanks to Kevin Diale for pointing out our oversight on &lt;tt class="docutils literal"&gt;getattr&lt;/tt&gt;/&lt;tt class="docutils literal"&gt;setattr&lt;/tt&gt;.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="python"></category><category term="forms"></category><category term="models"></category></entry><entry><title>What We Use</title><link href="http://brack3t.com/what-we-use.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-06-26:what-we-use.html</id><summary type="html">&lt;p&gt;We've noticed several people publishing lists of what they use to do their work lately, so we thought we'd join in.
+Below are the tools we use nearly every day to do our work. If you don't know, our work is the entire stack,
+from setting up servers, to &lt;a class="reference external" href="http://djangoproject.com"&gt;Django&lt;/a&gt; and &lt;a class="reference external" href="http://python.org"&gt;Python&lt;/a&gt; programming, to front-end web development and design. Obviously,
+with such a large area of work, we end up using a lot of different products and libraries, so, below is a list of our
+most common items.&lt;/p&gt;
+&lt;div class="contents topic" id="contents"&gt;
+&lt;p class="topic-title first"&gt;Contents&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#vim" id="id5"&gt;VIM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#firefox" id="id6"&gt;Firefox&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#iterm-2" id="id7"&gt;iTerm 2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#tmux" id="id8"&gt;Tmux&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#homebrew" id="id9"&gt;Homebrew&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#skype" id="id10"&gt;Skype&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#screen-sharing" id="id11"&gt;Screen Sharing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#balsamiq" id="id12"&gt;Balsamiq&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#favorite-libraries-and-frameworks" id="id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#summary" id="id14"&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="vim"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id5"&gt;VIM&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Do I really need to say anything about VIM? It's an amazing text editor and handles everything we need it to handle, from Django to HTML to &lt;a class="reference external" href="http://lesscss.org"&gt;LESS&lt;/a&gt; to Javascript and these blog posts (which are all done in &lt;a class="reference external" href="http://docutils.sourceforge.net/rst.html"&gt;RestructuredText&lt;/a&gt; and published with &lt;a class="reference external" href="http://pelican.readthedocs.org/en/2.7.2/index.html"&gt;Pelican&lt;/a&gt;). Yes, it has a steep learning curve but that can be pretty easily mitigated by starting with a GUI version (like &lt;a class="reference external" href="http://www.vim.org/download.php#pc"&gt;gVim&lt;/a&gt; or &lt;a class="reference external" href="https://github.com/b4winckler/macvim"&gt;MacVim&lt;/a&gt;) and mapping controls to settings you're used to. Use nothing else for a week or two and you'll be back to your old speed, if not faster.&lt;/p&gt;
+&lt;p&gt;There are a few plugins that we want to highlight, too.&lt;/p&gt;
+&lt;div class="section" id="plugins"&gt;
+&lt;h3&gt;Plugins&lt;/h3&gt;
+&lt;p&gt;First up is &lt;a class="reference external" href="https://github.com/kien/ctrlp.vim"&gt;Ctrl-P&lt;/a&gt;. It's a fuzzy file finder that'll search your tree. One of the handiest features is the &lt;tt class="docutils literal"&gt;ctrlp_working_path_mode&lt;/tt&gt; setting when it's set to &lt;tt class="docutils literal"&gt;2&lt;/tt&gt;, which makes the search start at the nearest ancestor with a version control file/folder in it, such as the &lt;tt class="docutils literal"&gt;.git&lt;/tt&gt; folder. It will ignore files you tell it to ignore and can search based on most-recently-used or through ctags, which would let you find a file based on classes or methods it contains.&lt;/p&gt;
+&lt;p&gt;Next is the complementary plugin, &lt;a class="reference external" href="https://github.com/scrooloose/nerdtree"&gt;NERDTree&lt;/a&gt;. We don't use it as much as we used to, now that we've switched to Ctrl-P, but it still gets a fair amount of usage. It's basically equivalent to TextMate or Sublime Text 2's project browser feature. Not much to explain here, but we do end up spending a fair amount of time in it.&lt;/p&gt;
+&lt;p&gt;We also use &lt;a class="reference external" href="https://github.com/jeetsukumaran/vim-buffergator"&gt;Buffergator&lt;/a&gt; a lot since we tend to jump between a lot of files throughout the day. Buffergator lets you quickly see all of your buffer, sorted in a couple of different ways (MRU and buffer number are the two modes we use most) and will let you preview a buffer without switching to it, which is pretty handy when you find out that all of our apps contain two view files named &lt;tt class="docutils literal"&gt;backend.py&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;frontend.py&lt;/tt&gt; and two urls files named the same and, potentially, two files of APIs named the same too (we like naming schemes, OK?).&lt;/p&gt;
+&lt;p&gt;For eye-candy, we also love the &lt;a class="reference external" href="https://github.com/Lokaltog/vim-powerline"&gt;Powerline&lt;/a&gt; plugin. It gives an awesome statusline effect and makes you feel cool, which is so rare for us nerdy types. Right, guys? Right?&lt;/p&gt;
+&lt;p&gt;Since we write a lot of different languages, having syntax checking is really important. We use &lt;a class="reference external" href="https://github.com/scrooloose/syntastic"&gt;Syntastic&lt;/a&gt; to check all of our files for erros, and that requires us to have PyFlakes or PyLint installed system-wide, for checking Python. We also install Tidy (from Homebrew) for checking HTML and gjslist (Google's JSLint) or the standard JSLint installed for checking Javascript.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="firefox"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id6"&gt;Firefox&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I know, I know, Chrome is the big browser on the block. And Safari is master of the mobile arena. But we both really like Firefox. Two main reasons, I think. One, &lt;a class="reference external" href="http://getfirebug.com/"&gt;Firebug&lt;/a&gt; is still the best inspector on the market, at least in my experience (and the Web Developer Toolbar's option to turn off cache isn't replicated in Safari at all). Secondly, &lt;a class="reference external" href="http://dactyl.sourceforge.net/pentadactyl/"&gt;Pentadactyl&lt;/a&gt; is unmatched in any other browser, bar none.&lt;/p&gt;
+&lt;p&gt;That said, we both use Chrome and Safari for testing sites, holding on to multiple logins, and testing out Socket.IO and the like. We just use Firefox for standard browsing.&lt;/p&gt;
+&lt;p&gt;Chris doesn't make use of it, but I definitely use the hell out of Firefox's tab groups, too. If you haven't tried out this feature, hit &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Cmd-Shift-E&lt;/span&gt;&lt;/tt&gt; (or likely &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Ctrl-Shift-E&lt;/span&gt;&lt;/tt&gt; for you PC types) and check it out. Amazingly handy when you work on a lot of projects or need to keep several browsing trains of thought running at the same time. I really wish they had a way to unload a group of tabs from memory, though. That's all it's missing.&lt;/p&gt;
+&lt;div class="section" id="addons"&gt;
+&lt;h3&gt;Addons&lt;/h3&gt;
+&lt;p&gt;As mentioned, we both use the hell out of Firebug. We also use Pentadactyl a lot. You all should know Firebug, so I'll talk about Pentadactyl for a bit. Since we're both big VIM users, Pentadactyl lets us use our keyboards for most of the browsing we do. We can open new tabs with &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; or just go to a new URL in the current one with &lt;tt class="docutils literal"&gt;o&lt;/tt&gt;. We both set &lt;a class="reference external" href="http://duckduckgo.com"&gt;DuckDuckGo&lt;/a&gt; as our default search engines, too, so a quick &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; followed by &lt;tt class="docutils literal"&gt;!django &amp;lt;search term here&amp;gt;&lt;/tt&gt; lets us quickly look up documentation.&lt;/p&gt;
+&lt;p&gt;I mentioned the &lt;a class="reference external" href="https://addons.mozilla.org/en-US/firefox/addon/web-developer/"&gt;Web Developer Toolbar&lt;/a&gt; earlier too. We don't make extensive use of all of its features, but we do use the cache disable and browser resizing features. Before Firebug and some other addons were around, though, it was a killer addon to have for its ability to inspect CSS.&lt;/p&gt;
+&lt;p&gt;The last addon that we made a lot of use of is &lt;a class="reference external" href="http://lackoftalent.org/michael/blog/json-in-firefox/"&gt;JSONovich&lt;/a&gt; which enables a pretty display of JSON in Firefox. If you end up having to look at a lot of JSON all day long (like, say, when you're working with Tastypie), it's really useful to have a nice view.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="iterm-2"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;iTerm 2&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;The terminal that comes with Mac OS X Lion is great, but we both had some display weirdnesses when it was coupled with Tmux and our VIM setups. &lt;a class="reference external" href="http://www.iterm2.com/"&gt;iTerm&lt;/a&gt; didn't have any of those issues (but it did bring around a new one with the pastebin). It looks good, works well, and supports native splitting. The newest version introduced support for a custom version of Tmux, but neither of us have tried that out yet. If/when we do, we'll probably write something about it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tmux"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id8"&gt;Tmux&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Ah, &lt;a class="reference external" href="http://tmux.sourceforge.net/"&gt;Tmux&lt;/a&gt;. If you don't know what it is, you should. It's a terminal multiplexer with is a long way of saying it lets you split one terminal window into lots of terminal windows, both as whole new windows (groups of panes) and individual panes. We end up running several servers to do our work, so being able to see and control all the servers in one Tmux window is amazingly handy.&lt;/p&gt;
+&lt;p&gt;I use &lt;a class="reference external" href="https://github.com/aziz/tmuxinator"&gt;Tmuxinator&lt;/a&gt;, too, to automate the creating of windows and panes for projects. You write a YAML file with rules for what windows and panes you want and what you want ran in each pane, then run &lt;tt class="docutils literal"&gt;tmuxinator start &amp;lt;project name&amp;gt;&lt;/tt&gt; and you're up and running.&lt;/p&gt;
+&lt;p&gt;Also, when working on servers, Tmux makes it really easy to attach to an existing session and you can watch or work in tandem with another developer.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="homebrew"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id9"&gt;Homebrew&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://mxcl.github.com/homebrew/"&gt;Homebrew&lt;/a&gt; is probably something we don't even need to mention. It's like &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;apt-get&lt;/span&gt;&lt;/tt&gt; or &lt;tt class="docutils literal"&gt;pacman&lt;/tt&gt; for your Mac, which means it'll let you install UNIX and Linux packages for your Mac through an easy command-line interface. You can even, with a bit of tinkering, install libraries that already come with your Mac, so if you need that bleeding-edge version of Ruby or Python, it's simple to install or uninstall.&lt;/p&gt;
+&lt;p&gt;We've written a couple of Homebrew recipes for internal use at our main client and that has definitely helped with keeping the team using the same packages and versions, regardless of machine or technical aptitude.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="skype"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id10"&gt;Skype&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I won't bother to link to Skype, I'm sure you already have it installed. We use it all day every day, though, since Chris and I pair program probably 98% of the day. Skype is how we conduct almost all of our client meetings and we talk through it all day ourselves. It's not a perfect system but it works really well and is less taxing on our machines than Google Hangouts.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="screen-sharing"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id11"&gt;Screen Sharing&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Yes, the built-in Screen Sharing on your Mac (go find it in your Finder, it's at &lt;tt class="docutils literal"&gt;System &amp;gt; Library &amp;gt; CoreServices&lt;/tt&gt; and stick it in your Dock). This, combined with Skype, a VPN or DynDNS url, and a couple of opened ports and you have a quick and easy way to do pair programming remotely. Set it to start in Observe Mode and you don't have to worry about disturbing the person you're working with either.&lt;/p&gt;
+&lt;div class="section" id="dyndns"&gt;
+&lt;h3&gt;DynDNS&lt;/h3&gt;
+&lt;p&gt;Chris and I each have a free domain name with &lt;a class="reference external" href="http://dyndns.org"&gt;DynDNS&lt;/a&gt; that we point to our machines through our routers and open up for web hosting (port 80) and screen sharing (the typical VNC ports). That way we can just point screen sharing to the URL and we're connected, no remembering IPs or having to look them up through the Network control panel or the terminal. Not a ground-breaking hint by any means but definitely one that has saved us time.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="balsamiq"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id12"&gt;Balsamiq&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;We use &lt;a class="reference external" href="http://www.balsamiq.com/"&gt;Balsamiq&lt;/a&gt; for mocking up interfaces before we build them. Most of our work currently is replacing existing interfaces, used by a fair-sized team for years, with new, better, smarter ones. We plan out most of them before we start to build them and vet them with the people that will be using them. Balsamiq gives us a great, low-fidelity version we can show people that doesn't lead them to make too many assumptions about appearance or advanced functionality.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="favorite-libraries-and-frameworks"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;As far as favorite frameworks go, I'll give you three guesses which one is our favorite and the first two guesses don't count. We use Django for pretty much everything and haven't seen a reason to move away from it yet. But we don't live or work in a vacuum, so we've had to add a lot of other items to our repetoire.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://nginx.org"&gt;Nginx&lt;/a&gt; is our web server of choice. It's fast, lightweight, and really easy to set up. We'll write up our crazy workflow with Nginx, Lua, Redis, and Scrapy soon.&lt;/p&gt;
+&lt;p&gt;For DOM manipulation, we use jQuery. It's solid and dependable.&lt;/p&gt;
+&lt;p&gt;For Javascript MVC, we use &lt;a class="reference external" href="http://backbonejs.org"&gt;BackboneJS&lt;/a&gt;. It may not be the newest or most fancy of the MVC frameworks, but we've come to understand it somewhat well, it works reliably with &lt;a class="reference external" href="http://tastypieapi.org"&gt;Tastypie&lt;/a&gt;, and uses the awesome Underscore.js library. Sadly, we haven't been able to make extensive use of Backbone yet, but we hope to change that in the near future.&lt;/p&gt;
+&lt;p&gt;Last but not least, for design, we both definitely love the Twitter &lt;a class="reference external" href="http://twitter.github.com/bootstrap"&gt;Bootstrap&lt;/a&gt; collection. It's a great starting point for web design and really helps you get to creating the product instead of worrying about what it looks like.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="summary"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id14"&gt;Summary&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I think that pretty much covers the tools and libraries we end up touching in our day-to-day work. Our work and requirements are constantly changing, though, so this post might be one that we need to revist every six months or year. If you have any suggestions for new products to check out, or ways we can make our current favorites even better, let us know on Twitter or in the comments below. Thanks for reading.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="workflow"></category><category term="tools"></category></entry><entry><title>Change Request Workflow</title><link href="http://brack3t.com/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-02-26:change-request-workflow.html</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
 Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).
 Users and editors can both enter Points into the database, which is PostgreSQL with PostGIS, and then they can be associated
 with any community.  Obviosuly, though, that leads to the problem of Community A editing a POI and Community B showing that data
@@ -1043,7 +1043,7 @@ out is verified and safe, but if anything gets out of date, we can change it our
 &lt;p&gt;There is a lot of stuff I didn't cover, what the &lt;tt class="docutils literal"&gt;Point&lt;/tt&gt; field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other
 stuff. If you have questions/comments, hit us up on &lt;a class="reference external" href="http://twitter.com/brack3t"&gt;Twitter&lt;/a&gt;. Also, thanks to &lt;a class="reference external" href="http://pydanny.github.com"&gt;Daniel Greenfeld&lt;/a&gt; for a couple of edits.&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="django"></category><category term="workflow"></category><category term="python"></category></entry><entry><title>Semantic Snakeoil</title><link href="http://brack3t.com/semantic-snakeoil.html" rel="alternate"></link><updated>2011-10-03T21:31:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2011-10-03:/semantic-snakeoil.html/</id><summary type="html">&lt;p&gt;For years now, we've been told that we should always use semantic class names and IDs in our HTML.
+</summary><category term="django"></category><category term="workflow"></category><category term="python"></category></entry><entry><title>Semantic Snakeoil</title><link href="http://brack3t.com/semantic-snakeoil.html" rel="alternate"></link><updated>2011-10-03T21:31:00Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2011-10-03:semantic-snakeoil.html</id><summary type="html">&lt;p&gt;For years now, we've been told that we should always use semantic class names and IDs in our HTML.
 And, in general, this is a good practice, I don't want anyone to think it's not. You &lt;em&gt;should&lt;/em&gt; make
 your markup, all aspects of it, as accurate and related as possible. The problem, though, comes
 when people become fanatical about their classes and IDs to the point of swearing off grid systems
@@ -1060,7 +1060,7 @@ and CSS frameworks in the name of &amp;quot;proper&amp;quot; web development pra
 &lt;blockquote&gt;
 There are no additional restrictions on the tokens authors can use in the class attribute, but authors are encouraged to use values that describe the nature of the content, rather than values that describe the desired presentation of the content. &lt;strong&gt;It is also valid to use values that describe the element.&lt;/strong&gt;&lt;/blockquote&gt;
 &lt;p&gt;Have comments? Continue the discussion on &lt;a class="reference external" href="http://news.ycombinator.com/item?id=3072260"&gt;Hacker News&lt;/a&gt;.&lt;/p&gt;
-</summary><category term="semantics"></category><category term="html"></category><category term="css"></category></entry><entry><title>Djangopeople.me</title><link href="http://brack3t.com/djangopeopleme.html" rel="alternate"></link><updated>2011-06-13T18:50:00Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2011-06-13:/djangopeopleme.html/</id><summary type="html">&lt;div class="section" id="what-is-it"&gt;
+</summary><category term="semantics"></category><category term="html"></category><category term="css"></category></entry><entry><title>Djangopeople.me</title><link href="http://brack3t.com/djangopeopleme.html" rel="alternate"></link><updated>2011-06-13T18:50:00Z</updated><author><name>Chris</name></author><id>tag:brack3t.com,2011-06-13:djangopeopleme.html</id><summary type="html">&lt;div class="section" id="what-is-it"&gt;
 &lt;h2&gt;What is it?&lt;/h2&gt;
 &lt;p&gt;At it's core, &lt;a class="reference external" href="http://djangopeople.me"&gt;djangopeople.me&lt;/a&gt; is a place for &lt;a class="reference external" href="https://www.djangoproject.com/"&gt;Django&lt;/a&gt; developers to register and be found based on their geographic location, whether it's by recruiters or a lonely Django developer like ourselves trying to find others close to him/her. That's the general idea behind the site.&lt;/p&gt;
 &lt;p&gt;We wanted to make it clean, simple and fast. For the maps we ended up using &lt;a class="reference external" href="http://leaflet.cloudmade.com/"&gt;Leaflet's&lt;/a&gt; open-source Javascript library. We initially started with Google Maps, but the rate limiting was too restrictive on the geocoding API for our needs and frankly, loading maps seemed very slow. So, with the project being free-to-use (and us being cheap), we looked for something else.&lt;/p&gt;

@@ -1,2 +1,1086 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>A Pelican Blog</title><link href="../." rel="alternate"></link><link href=".././feeds/all.atom.xml" rel="self"></link><id>../.</id><updated>2012-02-20T23:12:02Z</updated></feed>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>A Pelican Blog</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2012-06-26T18:15:15Z</updated><entry><title>AJAX and Django Views</title><link href="/ajax-and-django-views.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Chris and Kenneth</name></author><id>tag:,2012-06-26:ajax-and-django-views.html</id><summary type="html">&lt;p&gt;It seems that cleanly and easily doing AJAX views in Django is an area that gives a lot of people trouble. We like to do views as straight HTTP if at all possible, but there are always interactions that would be better served by &lt;em&gt;not&lt;/em&gt; having a page load. We're also big fans of &lt;a class="reference external" href="http://tastypieapi.org"&gt;django-tastypie&lt;/a&gt; but it's a whole other ball of wax on its own, especially if you want to have views that write to the database. So, for the purposes of getting everyone up to speed doing AJAX with Django, we'll ignore Tastypie for now and just stick with ordinary views.&lt;/p&gt;
+&lt;div class="section" id="django-automatic-csrf"&gt;
+&lt;h2&gt;Django automatic CSRF&lt;/h2&gt;
+&lt;p&gt;To start things off, put &lt;a class="reference external" href="https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax"&gt;this bit of Javascript&lt;/a&gt; from the Django docs into a script that's loaded on all the pages where you'll be needing to perform AJAX views. This allows &lt;em&gt;you&lt;/em&gt; to ignore the CSRF token for AJAX views, but it will be added as a request header.&lt;/p&gt;
+&lt;p&gt;We previously said this could be seen as a security loophole and that same-origin came into effect. Both of these statements are wrong.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="ajax-form-field-errors"&gt;
+&lt;h2&gt;AJAX &amp;amp; Form Field Errors&lt;/h2&gt;
+&lt;p&gt;Before we get to the Django side, there are a few small scripts that we recycle on every project.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;apply_form_field_error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;fieldname&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#id_&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;fieldname&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="nx"&gt;container&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#div_id_&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;fieldname&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="nx"&gt;error_msg&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;lt;span /&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;addClass&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;help-inline ajax-error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;error&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+
+    &lt;span class="nx"&gt;container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;addClass&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="nx"&gt;error_msg&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;insertAfter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;input&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;clear_form_field_errors&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;form&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.ajax-error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;form&lt;/span&gt;&lt;span class="p"&gt;)).&lt;/span&gt;&lt;span class="nx"&gt;remove&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;form&lt;/span&gt;&lt;span class="p"&gt;)).&lt;/span&gt;&lt;span class="nx"&gt;removeClass&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;These two functions are pretty self-explanatory, but I'll go over them anyway. The first, &lt;tt class="docutils literal"&gt;apply_form_field_error&lt;/tt&gt;, takes a field name and an error, finds the field on the page and sets the error text to the passed-in error. Our selectors here take advantage of how &lt;a class="reference external" href="http://twitter.github.com/bootstrap"&gt;Twitter Bootstrap&lt;/a&gt; renders forms, so you may need to change the selectors to match your own markup. The second, &lt;tt class="docutils literal"&gt;clear_form_field_errors&lt;/tt&gt;, removes the above text and classes, basicaly resetting the form. It's important to run this script before every AJAX submission so you don't get doubled-up errors if someone submits invalid data on the same field twice. You could add it to jQuery's &lt;tt class="docutils literal"&gt;beforeSend&lt;/tt&gt; if you don't want to have to think about it.&lt;/p&gt;
+&lt;p&gt;There are a couple more useful utility functions that we thought might be useful for some people.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;django_message&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;msg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;level&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;levels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;warning&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;alert&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;error&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;error&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;success&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;success&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;info&amp;#39;&lt;/span&gt;
+    &lt;span class="p"&gt;},&lt;/span&gt;
+    &lt;span class="nx"&gt;source&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;#message_template&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;html&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
+    &lt;span class="nx"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;Handlebars&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;source&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="nx"&gt;context&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="s1"&gt;&amp;#39;tags&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;levels&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;level&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+        &lt;span class="s1"&gt;&amp;#39;message&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;msg&lt;/span&gt;
+    &lt;span class="p"&gt;},&lt;/span&gt;
+    &lt;span class="nx"&gt;html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;template&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#message_area&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;html&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;django_block_message&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;msg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;level&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;source&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#message_block_template&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;html&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
+        &lt;span class="nx"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;Handlebars&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;source&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="nx"&gt;context&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;level&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;level&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;body&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;msg&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="nx"&gt;html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;template&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#message_area&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;html&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;These two scripts mirror Django's &lt;tt class="docutils literal"&gt;messages&lt;/tt&gt; app's functionality. Both use &lt;a class="reference external" href="http://handlebarsjs.com"&gt;Handlebars&lt;/a&gt; to render the template, but you could use any Javascript templating library you'd like. Our templates look like so:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% load verbatim_tag %}
+&lt;span class="nt"&gt;&amp;lt;script &lt;/span&gt;&lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;message_template&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text/x-handlebars-template&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="nx"&gt;verbatim&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;div&lt;/span&gt; &lt;span class="kr"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;alert alert-{{tags}} fade in&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;alert&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;{{tags}}&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt; &lt;span class="kr"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;close&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Close&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;href&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;dismiss&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;alert&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;times&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;{{{&lt;/span&gt;&lt;span class="nx"&gt;message&lt;/span&gt;&lt;span class="p"&gt;}}}&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="nx"&gt;endverbatim&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+
+&lt;span class="nt"&gt;&amp;lt;script &lt;/span&gt;&lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;message_block_template&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text/x-handlebars-template&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="nx"&gt;verbatim&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;div&lt;/span&gt; &lt;span class="kr"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;alert alert-block alert-{{level}} fade in&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt; &lt;span class="kr"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;close&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Close&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;href&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;dismiss&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;alert&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;times&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;{{{&lt;/span&gt;&lt;span class="nx"&gt;body&lt;/span&gt;&lt;span class="p"&gt;}}}&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="nx"&gt;endverbatim&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;verbatim&lt;/tt&gt; &lt;a class="reference external" href="https://gist.github.com/629508"&gt;tag&lt;/a&gt; there is from Eric Florenzano and makes including Javascript templates in your Django-parsed HTML really easy. We include these in a base template and provide a spot in the rest of the document to attach them to. Again, this is based largely on Twitter Bootstrap, so your markup will vary.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="ajax-views"&gt;
+&lt;h2&gt;AJAX Views&lt;/h2&gt;
+&lt;p&gt;So now let's get down to the good stuff. The following view is very generic and only shows the basic concept, but we're sure you'll get the gist of it.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.http import HttpResponse, HttpResponseBadRequest&lt;/span&gt;
+&lt;span class="x"&gt;from django.utils import simplejson as json&lt;/span&gt;
+&lt;span class="x"&gt;from django.views.generic import UpdateView&lt;/span&gt;
+
+&lt;span class="x"&gt;from braces.views import LoginRequiredMixin, PermissionRequiredMixin&lt;/span&gt;
+
+&lt;span class="x"&gt;class PonyAjaxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = PonyForm&lt;/span&gt;
+&lt;span class="x"&gt;    model = Pony&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = &amp;quot;ponies.change_pony&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def form_valid(self, form):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        If the request is ajax, save the form and return a json response.&lt;/span&gt;
+&lt;span class="x"&gt;        Otherwise return super as expected.&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        if self.request.is_ajax():&lt;/span&gt;
+&lt;span class="x"&gt;            self.object = form.save()&lt;/span&gt;
+&lt;span class="x"&gt;            return HttpResponse(json.dumps(&amp;quot;success&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;                mimetype=&amp;quot;application/json&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;        return super(PonyAjaxUpdateView, self).form_valid(form)&lt;/span&gt;
+
+&lt;span class="x"&gt;    def form_invalid(self, form):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        We haz errors in the form. If ajax, return them as json.&lt;/span&gt;
+&lt;span class="x"&gt;        Otherwise, proceed as normal.&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        if self.request.is_ajax():&lt;/span&gt;
+&lt;span class="x"&gt;            return HttpResponseBadRequest(json.dumps(form.errors),&lt;/span&gt;
+&lt;span class="x"&gt;                mimetype=&amp;quot;application/json&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;        return super(PonyAjaxUpdateView, self).form_invalid(form)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Again, nothing special in the view. We use an &lt;tt class="docutils literal"&gt;UpdateView&lt;/tt&gt; so we can, technically, still use the view without AJAX. Assuming that the POST data that comes in validates on the form, our &lt;tt class="docutils literal"&gt;form_valid&lt;/tt&gt; method will fire, which checks to see if the request was made via AJAX and, if so, returns a success string. Quite often we like to return a serialized version of the object that was just created or updated, but that takes some special considerations when it comes to Django model objects. If you don't need the object back, returning a standard &lt;tt class="docutils literal"&gt;HttpResponse&lt;/tt&gt; or one with a message, like demonstrated above, is enough. When returning JSON, make sure to include the &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;mimetype=&amp;quot;application/json&amp;quot;&lt;/span&gt;&lt;/tt&gt; in your &lt;tt class="docutils literal"&gt;HttpResponse&lt;/tt&gt;. Without the proper &lt;em&gt;mimetype&lt;/em&gt; you will be dealing with &lt;tt class="docutils literal"&gt;text/html&lt;/tt&gt; content instead of JSON. If your view creates new objects or deletes old ones, returning proper status codes, like &lt;tt class="docutils literal"&gt;201&lt;/tt&gt; for &lt;tt class="docutils literal"&gt;Created&lt;/tt&gt; is a very polite thing to do, especially if you think your view will end up as part of an ad hoc API.&lt;/p&gt;
+&lt;p&gt;Similarly, above, if the form is invalid, we serialize the form errors (note: not the &lt;tt class="docutils literal"&gt;non_field_errors()&lt;/tt&gt; errors) and send them back to the view. The script we wrote above, &lt;tt class="docutils literal"&gt;apply_form_field_error&lt;/tt&gt; can be called in a loop for each error in the list and update your form so the users know what they did wrong.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;span class="label label-info"&gt;note&lt;/span&gt; Did you notice the &lt;em&gt;braces&lt;/em&gt; package we used in the above view? That's a package we released from a previous blog post on &lt;a class="reference external" href="http://brack3t.com/our-custom-mixins.html"&gt;custom class-based view mixins&lt;/a&gt;. You can get it on &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github&lt;/a&gt; or &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/"&gt;PyPI&lt;/a&gt;.&lt;/blockquote&gt;
+&lt;div class="section" id="form-errors"&gt;
+&lt;h3&gt;Form Errors&lt;/h3&gt;
+&lt;p&gt;The difference between &lt;tt class="docutils literal"&gt;form.errors&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;form.non_field_errors()&lt;/tt&gt;: &lt;tt class="docutils literal"&gt;form.errors&lt;/tt&gt; are any errors directly related to a field in your form, &lt;tt class="docutils literal"&gt;form.non_field_errors()&lt;/tt&gt; would include errors raised by a custom &lt;tt class="docutils literal"&gt;clean()&lt;/tt&gt; method and are put into a special &amp;quot;field&amp;quot; called &lt;tt class="docutils literal"&gt;__all__&lt;/tt&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-jquery-side"&gt;
+&lt;h2&gt;The jQuery Side&lt;/h2&gt;
+&lt;div class="section" id="html"&gt;
+&lt;h3&gt;HTML&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;form&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;pony_form&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;method=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;POST&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;action=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{% url pony_update_view pony.pk %}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    {% csrf_token %}
+    &lt;span class="nt"&gt;&amp;lt;label&lt;/span&gt; &lt;span class="na"&gt;for=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;id_name&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;Pony Name&lt;span class="nt"&gt;&amp;lt;/label&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;input&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;id_name&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;input&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;submit&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;value=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Submit&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/form&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This isn't anything special, as you can see. Just a standard HTML form, like would be rendered by Django's form template filters (e.g. &lt;tt class="docutils literal"&gt;{{ form|as_ul }}&lt;/tt&gt;). If you need to perform AJAX tasks on non-form elemnts, the HTML5-added &lt;tt class="docutils literal"&gt;data-&lt;/tt&gt; attribute is really handy. We use it a lot for holding on to URLs and primary keys like: &lt;tt class="docutils literal"&gt;&amp;lt;li &lt;span class="pre"&gt;data-url=&amp;quot;{%&lt;/span&gt; url pony_update_view pony.pk %}&amp;quot; &lt;span class="pre"&gt;data-pk=&amp;quot;{{&lt;/span&gt; pony.pk &lt;span class="pre"&gt;}}&amp;quot;&amp;gt;{{&lt;/span&gt; pony.name &lt;span class="pre"&gt;}}&amp;lt;/li&amp;gt;&lt;/span&gt;&lt;/tt&gt;. This is useful for sortable interfaces, for example.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="jquery"&gt;
+&lt;h3&gt;jQuery&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;document&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;on&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;submit&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;#pony_form&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;preventDefault&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;self&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="nx"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;self&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;action&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="nx"&gt;ajax_req&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ajax&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+            &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;POST&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;self&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#id_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;val&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="p"&gt;},&lt;/span&gt;
+            &lt;span class="nx"&gt;success&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;textStatus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;jqXHR&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;django_message&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Pony saved successfully.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;success&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="p"&gt;},&lt;/span&gt;
+            &lt;span class="nx"&gt;error&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;functior&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;textStatus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;jqXHR&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;errors&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;parseJSON&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;responseText&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;each&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;errors&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;index&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;__all__&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nx"&gt;django_message&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;value&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                    &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nx"&gt;apply_form_field_error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;index&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;value&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                    &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="p"&gt;});&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;});&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Again, nothing special if you're used to doing AJAX requests in jQuery. We stop the form from actually submitting using &lt;tt class="docutils literal"&gt;preventDefault()&lt;/tt&gt; on the submission event, then build a few variables. Luckily we can get the URL directly off the form; this is part of why we end up using the &lt;tt class="docutils literal"&gt;data-&lt;/tt&gt; attributes a lot, so we can separate our templates from our Javascript. We typically go through and name out the keys that we want to send through to the backend view in the &lt;tt class="docutils literal"&gt;data&lt;/tt&gt; dict, but you could use serialization options provided by jQuery or another plugin. These just seem to have a lot of quirks that we'd rather not take into consideration (especially not for an example in a blog post). Our way is definitely more manual but less error-prone.&lt;/p&gt;
+&lt;p&gt;We then provide &lt;tt class="docutils literal"&gt;success&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;error&lt;/tt&gt; attributes for the &lt;tt class="docutils literal"&gt;.ajax()&lt;/tt&gt; call. These &lt;em&gt;can&lt;/em&gt; be provided outside of the &lt;tt class="docutils literal"&gt;.ajax()&lt;/tt&gt; call, which is very useful if your code is more modular, but we rarely have need of that approach. The &lt;tt class="docutils literal"&gt;success&lt;/tt&gt; function just prints out a message to the user, letting them know everything saved correctly. This is where you would update UI elements or whatever your use case requires.&lt;/p&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;error&lt;/tt&gt; function turns the JSON string that our view returned into a Javascript object so we can dig through it more easily (no one likes to parse text). We loop through all of the provided errors and, depending on if their key indicates them to be global or field-specific, render them out to the page for the user. Again, this is where you'd want to update your interface.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="summary"&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;To be honest, we don't end up using AJAX in exactly the method prescribed above. We usually use AJAX for utilitarian functions, like saving the order of records, activating/deactivating records, and deleting records in many-to-many joining tables. That said, our utilization of AJAX and the one above are 99% identical, so don't feel that we're giving you advice we wouldn't stand behind.&lt;/p&gt;
+&lt;p&gt;The ability to update, delete, and reorder elements without requiring a page load really adds a lot to your interface (assuming it's appropriate) and doing that with Django is amazingly easy. We've heard a few people say that class-based views make AJAX harder, or at least that it's easier with function-based views, but we haven't seen that to be the case at all. So don't be afraid to try AJAX regardless of the type of view you prefer.&lt;/p&gt;
+&lt;div class="section" id="notes"&gt;
+&lt;h3&gt;Notes&lt;/h3&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;If you're doing &lt;strong&gt;a lot&lt;/strong&gt; of AJAX work, look into an API framework like &lt;a class="reference external" href="http://tastypieapi.org"&gt;django-tastypie&lt;/a&gt; or &lt;a class="reference external" href="http://django-rest-framework.org/"&gt;django-rest-framework&lt;/a&gt;. We hope to cover more on Tastypie in a later post. These two frameworks become even more useful when you delve into things like &lt;a class="reference external" href="http://backbonejs.org"&gt;Backbone.js&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;We don't recommend doing create, update, or delete of first-class records through AJAX. We both feel that the response of a new page load gives some finality and completeness to the process that users expect, which is why the above example isn't based directly off code we've written for any clients. If you disagree, feel free to use the above examples to create your user experience. If you agree, we're sure you can modify the above code, as we do, to handle sort ordering, joining/disjoining, and other second-class record manipulation.&lt;/li&gt;
+&lt;li&gt;We felt like the above &lt;tt class="docutils literal"&gt;UpdateView&lt;/tt&gt; was a fairly solid and well-rounded example. If you need more information or examples, let us know in the comments and we'll gladly extend the post.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="ajax"></category><category term="jquery"></category></entry><entry><title>Generic Layouts in Crispy Forms</title><link href="/generic-layouts-in-crispy-forms.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:,2012-06-26:generic-layouts-in-crispy-forms.html</id><summary type="html">&lt;p&gt;Just a quick tip and sanity check, today, about something I ran into with &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt;, the awesome new form library from Miguel Araujo.&lt;/p&gt;
+&lt;p&gt;This morning, I converted the project we've been building for a client (currently some 1,700 or so files, counting templates, CSS, and icons) from &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt;. It's a pretty painless
+transition, actually. Just do some find-and-replace across your files, basically changing any instance of &lt;tt class="docutils literal"&gt;uni-&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;crispy-&lt;/tt&gt; (well, and &lt;tt class="docutils literal"&gt;form&lt;/tt&gt; to &lt;tt class="docutils literal"&gt;forms&lt;/tt&gt;), and you're good to go. Then, however, I wanted to
+convert two large forms that we have, which share 90% of their fields, to using the sharable &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; objects that &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-crispy-forms&lt;/span&gt;&lt;/tt&gt; gives us.&lt;/p&gt;
+&lt;p&gt;Basically, the forms looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class FirstForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 through field20]&lt;/span&gt;
+
+&lt;span class="x"&gt;class SecondForm(GenericAppFormForTheExample):&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        ...&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper = FormHelper()&lt;/span&gt;
+&lt;span class="x"&gt;        self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field1&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;special-field2&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            [field3 thorugh field20]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Obviously that was a lot of repetition that we could cut out now that these inheritable layouts exist. By the way, I'm pretty sure this would have been possible in &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;django-uni-form&lt;/span&gt;&lt;/tt&gt; but likely not as friendly.&lt;/p&gt;
+&lt;p&gt;First I started off by creating the shared resources. I made two of them since our special fields come in the middle of our layouts.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;form_intro_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;&amp;quot;field2&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;form_common_layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field3&lt;/span&gt; &lt;span class="n"&gt;through&lt;/span&gt; &lt;span class="n"&gt;field20&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And I added them each into my forms. I'm only going to show one form but you'll get the idea.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;self.form_intro_layout = form_intro_layout&lt;/span&gt;
+&lt;span class="x"&gt;self.form_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;self.helper.layout = Layout(&lt;/span&gt;
+&lt;span class="x"&gt;    self.form_intro_layout,&lt;/span&gt;
+&lt;span class="x"&gt;    form_common_layout&lt;/span&gt;
+&lt;span class="x"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And, display-wise, it worked fine. This is, ideally, exactly what you do to extend these layouts. &lt;strong&gt;But&lt;/strong&gt;, this causes problems in testing.&lt;/p&gt;
+&lt;p&gt;We test all of our views, models, and forms. The form tests passed fine, but some of the view tests were throwing up warnings about fields being referenced more than once and, for example, &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;special-field2&lt;/span&gt;&lt;/tt&gt; missing
+from &lt;tt class="docutils literal"&gt;FirstForm&lt;/tt&gt;. Obviously something was up with the inheritance and with how I was instantiating objects.&lt;/p&gt;
+&lt;p&gt;My next step was to stop using &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; on the instance-specific versions of the generic layouts and just give them a local name like &lt;tt class="docutils literal"&gt;standard_intro_layout&lt;/tt&gt; (the &lt;tt class="docutils literal"&gt;standard&lt;/tt&gt; name makes more sense internally and its
+meaning isn't important for this example), but that didn't stop the errors. It did, however, still work fine visually.&lt;/p&gt;
+&lt;p&gt;I tried using a &lt;tt class="docutils literal"&gt;.copy()&lt;/tt&gt; method on the layout, but that doesn't exist. So I turned to the &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; module of Python, specifically the &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt; method. I tried with just the standard &lt;tt class="docutils literal"&gt;copy&lt;/tt&gt; method, but it had
+the same effect of working visually, but throwing warnings on tests.&lt;/p&gt;
+&lt;p&gt;The new version looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from copy import deepcopy&lt;/span&gt;
+
+&lt;span class="x"&gt;standard_intro_layout = deepcopy(form_intro_layout)&lt;/span&gt;
+&lt;span class="x"&gt;standard_intro_layout.insert(-1, &amp;quot;special-field&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That works perfectly! It still appears the same visually, like all the methods have, and it also quiets the tests so they pass without warnings.&lt;/p&gt;
+&lt;p&gt;Unless someone knows of a reason I shouldn't use &lt;tt class="docutils literal"&gt;deepcopy&lt;/tt&gt;, this seems to be the way to solve this problem. I'm also not sure if it was the &lt;tt class="docutils literal"&gt;self&lt;/tt&gt; (which I doubt, since I removed it and the warnings still
+happened), or the fact that both forms extend the same abstract form, or some other variable that led to the problem. Regardless, I'm happy to have solved it.&lt;/p&gt;
+</summary><category term="django"></category><category term="django-crispy-forms"></category><category term="tip"></category></entry><entry><title>Our Custom Mixins</title><link href="/our-custom-mixins.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Chris</name></author><id>tag:,2012-06-26:our-custom-mixins.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;UPDATE&lt;/strong&gt;: We've released a &lt;a class="reference external" href="https://github.com/brack3t/django-braces"&gt;Github repo&lt;/a&gt; and a &lt;a class="reference external" href="http://pypi.python.org/pypi/django-braces/0.1.0"&gt;PyPI package&lt;/a&gt; with our mixins. Feel free to fork and submit new ones through a pull-request.&lt;/p&gt;
+&lt;p&gt;Let's just start out and say it, &lt;strong&gt;Class Based Views&lt;/strong&gt;. Ooohhhh. Unfortunately the topic of class based views is
+thought of as somewhat of a dark art in the Django community. It doesn't help that the documentation is still
+lacking but I find a lot of people, especially on &lt;a class="reference external" href="http://reddit.com/r/django"&gt;Reddit&lt;/a&gt;, refuse to use them. For whatever reason, it's a hard
+pill for some to swallow.&lt;/p&gt;
+&lt;p&gt;Before DjangoCon 2011, we started playing with class-based views. At first they seemed like a nightmare and without
+decent docs, we got frustrated really quickly. Skip forward to today and I can't imagine writing old function-based
+views again. Some argue that the &lt;tt class="docutils literal"&gt;generic views&lt;/tt&gt; are only for generic applications and that, somehow, their work is far too
+custom and complex to be handled in a generic class-based view. Based on my experience, 99% of the time, they would be wrong.&lt;/p&gt;
+&lt;p&gt;We plan on covering generic class-based views extensively with &lt;a class="reference external" href="http://gettingstartedwithdjango.com"&gt;GSWD&lt;/a&gt;. Today, I'd like to share some mixins we
+have cooked up, on a rather large client project, that have helped us out tremendously.&lt;/p&gt;
+&lt;p&gt;For those of you not familiar with decorating class-based views, check out the Django documentation on
+&lt;a class="reference external" href="https://docs.djangoproject.com/en/dev/topics/class-based-views/#decorating-the-class"&gt;decorating the class&lt;/a&gt;. We don't like the idea of doing decoration in Django's &lt;tt class="docutils literal"&gt;urls.py&lt;/tt&gt; or creating
+another instance variable just to hold a decorated class. To us, mixins feel more Pythonic.&lt;/p&gt;
+&lt;div class="contents well topic" id="mixins"&gt;
+&lt;p class="topic-title first"&gt;Mixins&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#loginrequiredmixin" id="id1"&gt;LoginRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#permissionrequiredmixin" id="id2"&gt;PermissionRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#superuserrequiredmixin" id="id3"&gt;SuperuserRequiredMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#userformkwargsmixin" id="id4"&gt;UserFormKwargsMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#userkwargmodelformmixin" id="id5"&gt;UserKwargModelFormMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#successurlredirectlistmixin" id="id6"&gt;SuccessURLRedirectListMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#setheadlinemixin" id="id7"&gt;SetHeadlineMixin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#conclusion" id="id8"&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="loginrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id1"&gt;LoginRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class LoginRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View mixin which verifies that the user has authenticated.&lt;/span&gt;
+
+&lt;span class="x"&gt;    NOTE:&lt;/span&gt;
+&lt;span class="x"&gt;        This should be the left-most mixin of a view.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    @method_decorator(login_required)&lt;/span&gt;
+&lt;span class="x"&gt;    def dispatch(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This mixin is rather simple and is generally the first inherited class in any of our views. If we don't have an authenticated user
+there's no need to go any further. If you've used Django before you are probably familiar with the &lt;tt class="docutils literal"&gt;login_required&lt;/tt&gt; decorator.
+All we are doing here is requiring a user to be authenticated to be able to get to this view.&lt;/p&gt;
+&lt;p&gt;While this doesn't look like much, it frees us up from having to manually overload the dispatch method on every single view that
+requires a user to be authenticated. If that's all that is needed on this view, we just saved 3 lines of code. Example usage below.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.views.generic import TemplateView&lt;/span&gt;
+
+&lt;span class="x"&gt;from myapp.mixins import LoginRequiredMixin&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class SomeSecretView(LoginRequiredMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get(self, request):&lt;/span&gt;
+&lt;span class="x"&gt;        return self.render_to_response({})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="permissionrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id2"&gt;PermissionRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class PermissionRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View mixin which verifies that the logged in user has the specified&lt;/span&gt;
+&lt;span class="x"&gt;    permission.&lt;/span&gt;
+
+&lt;span class="x"&gt;    Class Settings&lt;/span&gt;
+&lt;span class="x"&gt;    `permission_required` - the permission to check for.&lt;/span&gt;
+&lt;span class="x"&gt;    `login_url` - the login url of site&lt;/span&gt;
+&lt;span class="x"&gt;    `redirect_field_name` - defaults to &amp;quot;next&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    `raise_exception` - defaults to False - raise 403 if set to True&lt;/span&gt;
+
+&lt;span class="x"&gt;    Example Usage&lt;/span&gt;
+
+&lt;span class="x"&gt;        class SomeView(PermissionRequiredMixin, ListView):&lt;/span&gt;
+&lt;span class="x"&gt;            ...&lt;/span&gt;
+&lt;span class="x"&gt;            # required&lt;/span&gt;
+&lt;span class="x"&gt;            permission_required = &amp;quot;app.permission&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;            # optional&lt;/span&gt;
+&lt;span class="x"&gt;            login_url = &amp;quot;/signup/&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;            redirect_field_name = &amp;quot;hollaback&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;            raise_exception = True&lt;/span&gt;
+&lt;span class="x"&gt;            ...&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    login_url = settings.LOGIN_URL&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = None&lt;/span&gt;
+&lt;span class="x"&gt;    raise_exception = False&lt;/span&gt;
+&lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
+
+&lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        # Verify class settings&lt;/span&gt;
+&lt;span class="x"&gt;        if self.permission_required == None or len(&lt;/span&gt;
+&lt;span class="x"&gt;            self.permission_required.split(&amp;quot;.&amp;quot;)) != 2:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ImproperlyConfigured(&amp;quot;&amp;#39;PermissionRequiredMixin&amp;#39; requires &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;quot;&amp;#39;permission_required&amp;#39; attribute to be set.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;        has_permission = request.user.has_perm(self.permission_required)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if not has_permission:&lt;/span&gt;
+&lt;span class="x"&gt;            if self.raise_exception:&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseForbidden()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                path = urlquote(request.get_full_path())&lt;/span&gt;
+&lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return super(PermissionRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This mixin was originally written, I believe, by &lt;a class="reference external" href="https://github.com/danols"&gt;Daniel Sokolowski&lt;/a&gt; (&lt;a class="reference external" href="https://github.com/lukaszb/django-guardian/issues/48"&gt;code here&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The permission required mixin has been very handy for our client's custom CMS. Again, rather than overloading the
+dispatch method manually on every view that needs to check for the existence of a permission, we inherit this class
+and set the &lt;tt class="docutils literal"&gt;permission_required&lt;/tt&gt; class attribute on our view. If you don't specify &lt;tt class="docutils literal"&gt;permission_required&lt;/tt&gt; on
+your view, an &lt;tt class="docutils literal"&gt;ImproperlyConfigured&lt;/tt&gt; exception is raised reminding you that you haven't set it.&lt;/p&gt;
+&lt;p&gt;The one limitation of this mixin is that it can &lt;strong&gt;only&lt;/strong&gt; accept a single permission. It would need to be modified to
+handle more than one. We haven't needed that yet, so this has worked out well for us.&lt;/p&gt;
+&lt;p&gt;In our normal use case for this mixin, &lt;tt class="docutils literal"&gt;LoginRequiredMixin&lt;/tt&gt; comes first, then the &lt;tt class="docutils literal"&gt;PermissionRequiredMixin&lt;/tt&gt;. If we
+don't have an authenticated user, there is no sense in checking for any permissions.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;span class="label label-info"&gt;note&lt;/span&gt; If you are using Django's built in auth system, &lt;tt class="docutils literal"&gt;superusers&lt;/tt&gt; automatically have all permissions in your system.&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="superuserrequiredmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id3"&gt;SuperuserRequiredMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SuperuserRequiredMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    login_url = settings.LOGIN_URL&lt;/span&gt;
+&lt;span class="x"&gt;    raise_exception = False&lt;/span&gt;
+&lt;span class="x"&gt;    redirect_field_name = REDIRECT_FIELD_NAME&lt;/span&gt;
+
+&lt;span class="x"&gt;    def dispatch(self, request, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        if not request.user.is_superuser:&lt;/span&gt;
+&lt;span class="x"&gt;            if self.raise_exception:&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseForbidden()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                path = urlquote(request.get_full_path())&lt;/span&gt;
+&lt;span class="x"&gt;                tup = self.login_url, self.redirect_field_name, path&lt;/span&gt;
+&lt;span class="x"&gt;                return HttpResponseRedirect(&amp;quot;%s?%s=%s&amp;quot; % tup)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return super(SuperuserRequiredMixin, self).dispatch(&lt;/span&gt;
+&lt;span class="x"&gt;            request, *args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Another permission-based mixin. This is specifically for requiring a user to be a superuser. Comes in handy for tools that only privileged
+users should have access to.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="userformkwargsmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id4"&gt;UserFormKwargsMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserFormKwargsMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    CBV mixin which puts the user from the request into the form kwargs.&lt;/span&gt;
+&lt;span class="x"&gt;    Note: Using this mixin requires you to pop the `user` kwarg&lt;/span&gt;
+&lt;span class="x"&gt;    out of the dict in the super of your form&amp;#39;s `__init__`.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    def get_form_kwargs(self, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs = super(UserFormKwargsMixin, self).get_form_kwargs(**kwargs)&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs.update({&amp;quot;user&amp;quot;: self.request.user})&lt;/span&gt;
+&lt;span class="x"&gt;        return kwargs&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In our clients CMS, we have a lot of form-based views that require a user to be passed in for permission-based form tools. For example,
+only superusers can delete or disable certain objects. To custom tailor the form for users, we have to pass that user instance into the form
+and based on their permission level, change certain fields or add specific options within the forms &lt;tt class="docutils literal"&gt;__init__&lt;/tt&gt; method.&lt;/p&gt;
+&lt;p&gt;This mixin automates the process of overloading the &lt;tt class="docutils literal"&gt;get_form_kwargs&lt;/tt&gt; (this method is available in any generic view which handles a form) method
+and stuffs the user instance into the form kwargs. We can then pop the user off in the form and do with it what we need. &lt;strong&gt;Always&lt;/strong&gt; remember
+to pop the user from the kwargs before calling &lt;tt class="docutils literal"&gt;super&lt;/tt&gt; on your form, otherwise the form gets an unexpected keyword argument and everything
+blows up. Example usage:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.views.generic import CreateView&lt;/span&gt;
+
+&lt;span class="x"&gt;from myapp.mixins import LoginRequiredMixin, UserFormKwargsMixin&lt;/span&gt;
+&lt;span class="x"&gt;from next.example import UserForm&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class SomeSecretView(LoginRequiredMixin, UserFormKwargsMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    TemplateView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = UserForm&lt;/span&gt;
+&lt;span class="x"&gt;    model = User&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="userkwargmodelformmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id5"&gt;UserKwargModelFormMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserKwargModelFormMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Generic model form mixin for popping user out of the kwargs and&lt;/span&gt;
+&lt;span class="x"&gt;    attaching it to the instance.&lt;/span&gt;
+
+&lt;span class="x"&gt;    This mixin must precede forms.ModelForm/forms.Form. The form is not&lt;/span&gt;
+&lt;span class="x"&gt;    expecting these kwargs to be passed in, so they must be poppped off before&lt;/span&gt;
+&lt;span class="x"&gt;    anything else is done.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        self.user = kwargs.pop(&amp;quot;user&amp;quot;, None)&lt;/span&gt;
+&lt;span class="x"&gt;        super(UserKwargModelFormMixin, self).__init__(*args, **kwargs)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;UserKwargModelFormMixin&lt;/tt&gt; is a new form mixin we just implemented this week to go along with our &lt;tt class="docutils literal"&gt;UserFormKwargsMixin&lt;/tt&gt;.
+This becomes the first inherited class of our forms that receive the user keyword argument. With this mixin, we have automated
+the popping off of the keyword argument in our form and no longer have to do it manually on every form that works this way.
+While this may be overkill for a weekend project, for us, it speeds up adding new features. Example usage:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class UserForm(UserKwargModelFormMixin, forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = User&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __init__(self, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        super(UserForm, self).__init__(*args, **kwargs):&lt;/span&gt;
+
+&lt;span class="x"&gt;        if not self.user.is_superuser:&lt;/span&gt;
+&lt;span class="x"&gt;            del self.fields[&amp;quot;group&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="successurlredirectlistmixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id6"&gt;SuccessURLRedirectListMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SuccessURLRedirectListMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Simple CBV mixin which sets the success url to the list view of&lt;/span&gt;
+&lt;span class="x"&gt;    a given app. Set success_list_url as a class attribute of your&lt;/span&gt;
+&lt;span class="x"&gt;    CBV and don&amp;#39;t worry about overloading the get_success_url.&lt;/span&gt;
+
+&lt;span class="x"&gt;    This is only to be used for redirecting to a list page. If you need&lt;/span&gt;
+&lt;span class="x"&gt;    to reverse the url with kwargs, this is not the mixin to use.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_success_url(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return reverse(self.success_list_url)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt; is a bit more tailored to how we handle &lt;a class="reference external" href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete"&gt;CRUD&lt;/a&gt; within our CMS. Our CMS's workflow, by design,
+redirects the user to the &lt;tt class="docutils literal"&gt;ListView&lt;/tt&gt; for whatever model they are working with, whether they are creating a new instance, editing
+an existing one or deleting one. Rather than having to override &lt;tt class="docutils literal"&gt;get_success_url&lt;/tt&gt; on every view, we simply use this mixin and pass it
+a reversible route name. Example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;# urls.py&lt;/span&gt;
+&lt;span class="x"&gt;url(r&amp;quot;^users/$&amp;quot;, UserListView.as_view(), name=&amp;quot;cms_users_list&amp;quot;),&lt;/span&gt;
+
+&lt;span class="x"&gt;# views.py&lt;/span&gt;
+&lt;span class="x"&gt;class UserCreateView(LoginRequiredMixin, PermissionRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    SuccessURLRedirectListMixin, CreateView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = UserForm&lt;/span&gt;
+&lt;span class="x"&gt;    model = User&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = &amp;quot;auth.add_user&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = &amp;quot;cms_users_list&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="setheadlinemixin"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;SetHeadlineMixin&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class SetHeadlineMixin(object):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Mixin allows you to set a static headline through a static property on the&lt;/span&gt;
+&lt;span class="x"&gt;    class or programmatically by overloading the get_headline method.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    headline = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_context_data(self, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs = super(SetHeadlineMixin, self).get_context_data(**kwargs)&lt;/span&gt;
+&lt;span class="x"&gt;        kwargs.update({&amp;quot;headline&amp;quot;: self.get_headline()})&lt;/span&gt;
+&lt;span class="x"&gt;        return kwargs&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_headline(self):&lt;/span&gt;
+&lt;span class="x"&gt;        if self.headline is None:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ImproperlyConfigured(u&amp;quot;%(cls)s is missing a headline. Define &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                u&amp;quot;%(cls)s.headline, or override &amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;                u&amp;quot;%(cls)s.get_headline().&amp;quot; % {&amp;quot;cls&amp;quot;: self.__class__.__name__&lt;/span&gt;
+&lt;span class="x"&gt;            })&lt;/span&gt;
+&lt;span class="x"&gt;        return self.headline&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;tt class="docutils literal"&gt;SetHeadlineMixin&lt;/tt&gt; is a newer edition to our client's CMS. It allows us to &lt;em&gt;statically&lt;/em&gt; or &lt;em&gt;programmatically&lt;/em&gt; set the headline of any
+of our views. We like to write as few templates as possible, so a mixin like this helps us reuse generic templates. Its usage is amazingly
+straightforward and works much like Django's built-in &lt;tt class="docutils literal"&gt;get_queryset&lt;/tt&gt; method. This mixin has two ways of being used.&lt;/p&gt;
+&lt;div class="section" id="static-example"&gt;
+&lt;h3&gt;Static Example&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class HeadlineView(SetHeadlineMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    headline = &amp;quot;This is our headline&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="dynamic-example"&gt;
+&lt;h3&gt;Dynamic Example&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from datetime import date&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class HeadlineView(SetHeadlineMixin, TemplateView):&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;path/to/template.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_headline(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return u&amp;quot;This is our headline for %s&amp;quot; % date.today().isoformat()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In both usages, in the template, just print out &lt;tt class="docutils literal"&gt;{{ headline }}&lt;/tt&gt; to show the generated headline.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="conclusion"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id8"&gt;Conclusion&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Hopefully we've inspired you to use class-based views and custom mixins in your own projects or, at the very least, give class-based views another look.
+Writing custom mixins helps to alleviate pain points in your project and make it faster to create new features, at least is has for us. If you have
+any questions, leave a comment or hit us up on Twitter.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="CBVs"></category></entry><entry><title>User-friendlier model forms</title><link href="/user-friendlier-model-forms.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:,2012-06-26:user-friendlier-model-forms.html</id><summary type="html">&lt;p&gt;Recently, in our large client project, we had need of fields, in a model form, that accepted multiple types of input, but sanitized the data for the model. For example, the &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field, on the form, needs to handle a rent range (e.g. 900-1200), a single amount, or be overridden or extended by other bits of information, like &amp;quot;call for details&amp;quot; or &amp;quot;on approved credit&amp;quot;. Obviously we don't want to have to parse this out every time we read the data. So, enter our fields that tear data apart and put it together every time it passes through.&lt;/p&gt;
+&lt;div class="section" id="model"&gt;
+&lt;h2&gt;Model&lt;/h2&gt;
+&lt;p&gt;Let's go over our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model first. It's an abstract model so we can use it in multiple places (we have more than one logical model in the system that needs to deal with rent, this way we can use it multiple places without having to hold on to a huge amount of joins). We have several other abstract models that perform the same actions as our &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; model, but I won't show them here.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.core.exceptions import ValidationError&lt;/span&gt;
+&lt;span class="x"&gt;from django.db import models&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class Rent(models.Model):&lt;/span&gt;
+&lt;span class="x"&gt;    rent_low = models.PositiveIntegerField()&lt;/span&gt;
+&lt;span class="x"&gt;    rent_high = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_percent_income = models.FloatField(blank=True, null=True)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_oac = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_call_for_details = models.BooleanField(default=False)&lt;/span&gt;
+&lt;span class="x"&gt;    rent_up_to = models.PositiveIntegerField(blank=True, null=True)&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
+
+&lt;span class="x"&gt;    def clean(self):&lt;/span&gt;
+&lt;span class="x"&gt;        super(Rent, self).clean()&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_high and self.rent_high &amp;lt;= self.rent_low:&lt;/span&gt;
+&lt;span class="x"&gt;            raise ValidationError(&amp;quot;Invalid rent range.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income or self.rent_call_for_details or \&lt;/span&gt;
+&lt;span class="x"&gt;           self.rent_up_to:&lt;/span&gt;
+
+&lt;span class="x"&gt;            self.rent_low = 0&lt;/span&gt;
+&lt;span class="x"&gt;            self.rent_high = None&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def rent(self):&lt;/span&gt;
+&lt;span class="x"&gt;        if self.rent_call_for_details:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Call for details.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_up_to:&lt;/span&gt;
+&lt;span class="x"&gt;            return u&amp;quot;Up to $%d&amp;quot; % self.rent_up_to&lt;/span&gt;
+
+&lt;span class="x"&gt;        response = &amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_percent_income:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%g%% of income.&amp;quot; % self.rent_percent_income&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response +=  u&amp;quot;%d-%d&amp;quot; % (self.rent_low, self.rent_high)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_low &amp;gt; 0 and not self.rent_high:&lt;/span&gt;
+&lt;span class="x"&gt;            response += u&amp;quot;%d&amp;quot; % self.rent_low&lt;/span&gt;
+
+&lt;span class="x"&gt;        if self.rent_oac:&lt;/span&gt;
+&lt;span class="x"&gt;            response += &amp;quot; On approved credit.&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;        return response&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The one &amp;quot;gotcha&amp;quot; here, that you may not get right away, is the &lt;tt class="docutils literal"&gt;super(Rent, &lt;span class="pre"&gt;self).clean()&lt;/span&gt;&lt;/tt&gt; at the top of the &lt;tt class="docutils literal"&gt;clean()&lt;/tt&gt;. We explicitly call it here to make sure the cleaning continues up the chain in our models that extend &lt;tt class="docutils literal"&gt;Rent&lt;/tt&gt; and the other extended models (as mentioned, we have several models created and used this way). You'll notice in the model we have a field for each of our states, the low and high values of rent, and the other fields that override the rent output value. We also have a class property of &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; that we can call on the extending models to get the computed rent value.&lt;/p&gt;
+&lt;p&gt;That property doesn't do anything really interesting except return a value based on the field values. The clean is a little more interesting for how it sets &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; to 0 and empties out &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; when their values no longer matter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="form"&gt;
+&lt;h2&gt;Form&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;from django.core.validators import RegexValidator
+
+[...]
+
+integer_range = RegexValidator(
+    regex=re.compile(r&amp;quot;^[0-9]*(-[0-9]*)?$&amp;quot;),
+    message=&amp;quot;Please enter a valid number, or a range in the format: 100-200&amp;quot;,
+    code=&amp;quot;invalid&amp;quot;
+)
+
+
+class FloorplanBaseForm(CommunityKwargModelFormMixin, UserKwargModelFormMixin,
+    forms.ModelForm):
+
+    rent = forms.CharField(max_length=75, required=False,
+        validators=[integer_range])
+
+    class Meta:
+        model = Floorplan
+
+
+    def __init__(self, *args, **kwargs):
+        super(FloorplanBaseForm, self).__init__(*args, **kwargs)
+
+        [...]
+
+        if self.instance.pk:
+            set_custom_fields(self, [&amp;quot;rent&amp;quot;, &amp;quot;deposit&amp;quot;, &amp;quot;promo&amp;quot;, &amp;quot;sq_ft&amp;quot;])
+
+    def clean(self):
+        super(FloorplanBaseForm, self).clean()
+        data = self.cleaned_data
+
+        [...]
+
+        if data.get(&amp;quot;rent&amp;quot;, None) and not data[&amp;quot;rent_call_for_details&amp;quot;] and not\
+            data[&amp;quot;rent_percent_income&amp;quot;] and not data[&amp;quot;rent_up_to&amp;quot;]:
+
+            split_ranges(self, &amp;quot;rent&amp;quot;)
+
+        clean_custom_fields(self, data, [&amp;quot;rent&amp;quot;, &amp;quot;rent_call_for_details&amp;quot;,
+            &amp;quot;rent_up_to&amp;quot;, &amp;quot;rent_percent_income&amp;quot;],
+            &amp;quot;You must enter a value for rent.&amp;quot;, &amp;quot;rent&amp;quot;)
+
+        return data
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I've removed bits of the form that deal with other fields like &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; since I'm not showing anything about them. This is, more or less, an abstract form. We never render it, but we extend it to support our specific floorplan types. In those extending forms, we tell &lt;tt class="docutils literal"&gt;rent_low&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;rent_high&lt;/tt&gt; to be excluded. In this form, though, we provide a single &lt;tt class="docutils literal"&gt;rent&lt;/tt&gt; field that has a regular expression validator on it to ensure that it contains an interger or two integers separated by a hyphen. This lets the users enter data as more-or-less natural text instead of having to tab through a bunch of fields or enter the data in a weird format.&lt;/p&gt;
+&lt;p&gt;You'll notice three custom methods being called, &lt;tt class="docutils literal"&gt;set_custom_fields&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;clean_custom_fields&lt;/tt&gt;. We'll cover them next.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="custom-methods"&gt;
+&lt;h2&gt;Custom methods&lt;/h2&gt;
+&lt;p&gt;Let's go over these one at a time.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def clean_custom_fields(form, cleaned_data, fields, error_msg, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Make sure at least one required option has been supplied.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    if not any([cleaned_data.get(f, None) for f in fields]):&lt;/span&gt;
+&lt;span class="x"&gt;        form.errors[field] = form.error_class([error_msg])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Since we have more than one field to clean, but they can be used in several different combinations, we have to make sure that at least one of the fields is provided. The &lt;tt class="docutils literal"&gt;any&lt;/tt&gt; method from the Python standard library is amazingly useful for this. We pass in the form, because, again, we use this multiple places, our form's cleaned data, the fields we want checked, an error message, and the field to highlight if none of them are provided. This is a fairly useful and flexible solution that has, so far, fulfilled all of our needs.&lt;/p&gt;
+&lt;p&gt;Next is the &lt;tt class="docutils literal"&gt;split_ranges&lt;/tt&gt; field.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def split_ranges(form, field):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Split custom range fields into model fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    try:&lt;/span&gt;
+&lt;span class="x"&gt;        low, high = form.cleaned_data[field].split(&amp;quot;-&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(low))&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, int(high))&lt;/span&gt;
+&lt;span class="x"&gt;    except ValueError:&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_low&amp;quot;, int(form.cleaned_data[field]))&lt;/span&gt;
+&lt;span class="x"&gt;        setattr(form.instance, field + &amp;quot;_high&amp;quot;, None)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This small little method takes our unified field in the form and splits it out into the &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;low&lt;/tt&gt; fields on the model. Since our fields are named reliably and similarly, we're able to set fields without knowing all the names.&lt;/p&gt;
+&lt;p&gt;Also, notice how we use the &lt;tt class="docutils literal"&gt;ValueError&lt;/tt&gt; that'll be thrown by not having a &lt;tt class="docutils literal"&gt;high&lt;/tt&gt; value to set on the form to trigger it being set to &lt;tt class="docutils literal"&gt;None&lt;/tt&gt;, exactly what our model is expecting already.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;def set_custom_fields(form, fields):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Combine low/high fields into the range fields.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    for field in fields:&lt;/span&gt;
+&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
+&lt;span class="x"&gt;            form.fields[field].initial = u&amp;quot;%d-%d&amp;quot; % (&lt;/span&gt;
+&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;                getattr(form.instance, field + &amp;quot;_high&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;            )&lt;/span&gt;
+
+&lt;span class="x"&gt;        if getattr(form.instance, field + &amp;quot;_low&amp;quot;, None) &amp;gt; 0 and not \&lt;/span&gt;
+&lt;span class="x"&gt;            getattr(form.instance, field + &amp;quot;_high&amp;quot;, None):&lt;/span&gt;
+
+&lt;span class="x"&gt;            form.fields[field].initial = gettar(form.instance, field + &amp;quot;_low&amp;quot;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This method is the reverse of the one above. We look at the initial data that is passed in when editing a model instance and combine our values so they match what the user would have already entered.&lt;/p&gt;
+&lt;p&gt;So, that model and that form combined with those methods lets us handle natural language entries for somewhat complex data. Granted, our use case would be negated by adding an extra field, but it's less friendly. One of our biggest goals on any client work we do is to make it user-friendly and a solid user experience all the way around. This bit of extra work has helped us do that quickly and easily.&lt;/p&gt;
+&lt;p&gt;Hopefully this gives you some ideas on how to make forms more user-friendly while maintaining solid model data on the backend. If you see something we could be doing better, please let us know in the comments.&lt;/p&gt;
+&lt;p&gt;Thanks to Kevin Diale for pointing out our oversight on &lt;tt class="docutils literal"&gt;getattr&lt;/tt&gt;/&lt;tt class="docutils literal"&gt;setattr&lt;/tt&gt;.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="python"></category><category term="forms"></category><category term="models"></category></entry><entry><title>What We Use</title><link href="/what-we-use.html" rel="alternate"></link><updated>2012-06-26T18:15:15Z</updated><author><name>Kenneth</name></author><id>tag:,2012-06-26:what-we-use.html</id><summary type="html">&lt;p&gt;We've noticed several people publishing lists of what they use to do their work lately, so we thought we'd join in.
+Below are the tools we use nearly every day to do our work. If you don't know, our work is the entire stack,
+from setting up servers, to &lt;a class="reference external" href="http://djangoproject.com"&gt;Django&lt;/a&gt; and &lt;a class="reference external" href="http://python.org"&gt;Python&lt;/a&gt; programming, to front-end web development and design. Obviously,
+with such a large area of work, we end up using a lot of different products and libraries, so, below is a list of our
+most common items.&lt;/p&gt;
+&lt;div class="contents topic" id="contents"&gt;
+&lt;p class="topic-title first"&gt;Contents&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#vim" id="id5"&gt;VIM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#firefox" id="id6"&gt;Firefox&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#iterm-2" id="id7"&gt;iTerm 2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#tmux" id="id8"&gt;Tmux&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#homebrew" id="id9"&gt;Homebrew&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#skype" id="id10"&gt;Skype&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#screen-sharing" id="id11"&gt;Screen Sharing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#balsamiq" id="id12"&gt;Balsamiq&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#favorite-libraries-and-frameworks" id="id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="#summary" id="id14"&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="vim"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id5"&gt;VIM&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Do I really need to say anything about VIM? It's an amazing text editor and handles everything we need it to handle, from Django to HTML to &lt;a class="reference external" href="http://lesscss.org"&gt;LESS&lt;/a&gt; to Javascript and these blog posts (which are all done in &lt;a class="reference external" href="http://docutils.sourceforge.net/rst.html"&gt;RestructuredText&lt;/a&gt; and published with &lt;a class="reference external" href="http://pelican.readthedocs.org/en/2.7.2/index.html"&gt;Pelican&lt;/a&gt;). Yes, it has a steep learning curve but that can be pretty easily mitigated by starting with a GUI version (like &lt;a class="reference external" href="http://www.vim.org/download.php#pc"&gt;gVim&lt;/a&gt; or &lt;a class="reference external" href="https://github.com/b4winckler/macvim"&gt;MacVim&lt;/a&gt;) and mapping controls to settings you're used to. Use nothing else for a week or two and you'll be back to your old speed, if not faster.&lt;/p&gt;
+&lt;p&gt;There are a few plugins that we want to highlight, too.&lt;/p&gt;
+&lt;div class="section" id="plugins"&gt;
+&lt;h3&gt;Plugins&lt;/h3&gt;
+&lt;p&gt;First up is &lt;a class="reference external" href="https://github.com/kien/ctrlp.vim"&gt;Ctrl-P&lt;/a&gt;. It's a fuzzy file finder that'll search your tree. One of the handiest features is the &lt;tt class="docutils literal"&gt;ctrlp_working_path_mode&lt;/tt&gt; setting when it's set to &lt;tt class="docutils literal"&gt;2&lt;/tt&gt;, which makes the search start at the nearest ancestor with a version control file/folder in it, such as the &lt;tt class="docutils literal"&gt;.git&lt;/tt&gt; folder. It will ignore files you tell it to ignore and can search based on most-recently-used or through ctags, which would let you find a file based on classes or methods it contains.&lt;/p&gt;
+&lt;p&gt;Next is the complementary plugin, &lt;a class="reference external" href="https://github.com/scrooloose/nerdtree"&gt;NERDTree&lt;/a&gt;. We don't use it as much as we used to, now that we've switched to Ctrl-P, but it still gets a fair amount of usage. It's basically equivalent to TextMate or Sublime Text 2's project browser feature. Not much to explain here, but we do end up spending a fair amount of time in it.&lt;/p&gt;
+&lt;p&gt;We also use &lt;a class="reference external" href="https://github.com/jeetsukumaran/vim-buffergator"&gt;Buffergator&lt;/a&gt; a lot since we tend to jump between a lot of files throughout the day. Buffergator lets you quickly see all of your buffer, sorted in a couple of different ways (MRU and buffer number are the two modes we use most) and will let you preview a buffer without switching to it, which is pretty handy when you find out that all of our apps contain two view files named &lt;tt class="docutils literal"&gt;backend.py&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;frontend.py&lt;/tt&gt; and two urls files named the same and, potentially, two files of APIs named the same too (we like naming schemes, OK?).&lt;/p&gt;
+&lt;p&gt;For eye-candy, we also love the &lt;a class="reference external" href="https://github.com/Lokaltog/vim-powerline"&gt;Powerline&lt;/a&gt; plugin. It gives an awesome statusline effect and makes you feel cool, which is so rare for us nerdy types. Right, guys? Right?&lt;/p&gt;
+&lt;p&gt;Since we write a lot of different languages, having syntax checking is really important. We use &lt;a class="reference external" href="https://github.com/scrooloose/syntastic"&gt;Syntastic&lt;/a&gt; to check all of our files for erros, and that requires us to have PyFlakes or PyLint installed system-wide, for checking Python. We also install Tidy (from Homebrew) for checking HTML and gjslist (Google's JSLint) or the standard JSLint installed for checking Javascript.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="firefox"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id6"&gt;Firefox&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I know, I know, Chrome is the big browser on the block. And Safari is master of the mobile arena. But we both really like Firefox. Two main reasons, I think. One, &lt;a class="reference external" href="http://getfirebug.com/"&gt;Firebug&lt;/a&gt; is still the best inspector on the market, at least in my experience (and the Web Developer Toolbar's option to turn off cache isn't replicated in Safari at all). Secondly, &lt;a class="reference external" href="http://dactyl.sourceforge.net/pentadactyl/"&gt;Pentadactyl&lt;/a&gt; is unmatched in any other browser, bar none.&lt;/p&gt;
+&lt;p&gt;That said, we both use Chrome and Safari for testing sites, holding on to multiple logins, and testing out Socket.IO and the like. We just use Firefox for standard browsing.&lt;/p&gt;
+&lt;p&gt;Chris doesn't make use of it, but I definitely use the hell out of Firefox's tab groups, too. If you haven't tried out this feature, hit &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Cmd-Shift-E&lt;/span&gt;&lt;/tt&gt; (or likely &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;Ctrl-Shift-E&lt;/span&gt;&lt;/tt&gt; for you PC types) and check it out. Amazingly handy when you work on a lot of projects or need to keep several browsing trains of thought running at the same time. I really wish they had a way to unload a group of tabs from memory, though. That's all it's missing.&lt;/p&gt;
+&lt;div class="section" id="addons"&gt;
+&lt;h3&gt;Addons&lt;/h3&gt;
+&lt;p&gt;As mentioned, we both use the hell out of Firebug. We also use Pentadactyl a lot. You all should know Firebug, so I'll talk about Pentadactyl for a bit. Since we're both big VIM users, Pentadactyl lets us use our keyboards for most of the browsing we do. We can open new tabs with &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; or just go to a new URL in the current one with &lt;tt class="docutils literal"&gt;o&lt;/tt&gt;. We both set &lt;a class="reference external" href="http://duckduckgo.com"&gt;DuckDuckGo&lt;/a&gt; as our default search engines, too, so a quick &lt;tt class="docutils literal"&gt;t&lt;/tt&gt; followed by &lt;tt class="docutils literal"&gt;!django &amp;lt;search term here&amp;gt;&lt;/tt&gt; lets us quickly look up documentation.&lt;/p&gt;
+&lt;p&gt;I mentioned the &lt;a class="reference external" href="https://addons.mozilla.org/en-US/firefox/addon/web-developer/"&gt;Web Developer Toolbar&lt;/a&gt; earlier too. We don't make extensive use of all of its features, but we do use the cache disable and browser resizing features. Before Firebug and some other addons were around, though, it was a killer addon to have for its ability to inspect CSS.&lt;/p&gt;
+&lt;p&gt;The last addon that we made a lot of use of is &lt;a class="reference external" href="http://lackoftalent.org/michael/blog/json-in-firefox/"&gt;JSONovich&lt;/a&gt; which enables a pretty display of JSON in Firefox. If you end up having to look at a lot of JSON all day long (like, say, when you're working with Tastypie), it's really useful to have a nice view.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="iterm-2"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;iTerm 2&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;The terminal that comes with Mac OS X Lion is great, but we both had some display weirdnesses when it was coupled with Tmux and our VIM setups. &lt;a class="reference external" href="http://www.iterm2.com/"&gt;iTerm&lt;/a&gt; didn't have any of those issues (but it did bring around a new one with the pastebin). It looks good, works well, and supports native splitting. The newest version introduced support for a custom version of Tmux, but neither of us have tried that out yet. If/when we do, we'll probably write something about it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tmux"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id8"&gt;Tmux&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Ah, &lt;a class="reference external" href="http://tmux.sourceforge.net/"&gt;Tmux&lt;/a&gt;. If you don't know what it is, you should. It's a terminal multiplexer with is a long way of saying it lets you split one terminal window into lots of terminal windows, both as whole new windows (groups of panes) and individual panes. We end up running several servers to do our work, so being able to see and control all the servers in one Tmux window is amazingly handy.&lt;/p&gt;
+&lt;p&gt;I use &lt;a class="reference external" href="https://github.com/aziz/tmuxinator"&gt;Tmuxinator&lt;/a&gt;, too, to automate the creating of windows and panes for projects. You write a YAML file with rules for what windows and panes you want and what you want ran in each pane, then run &lt;tt class="docutils literal"&gt;tmuxinator start &amp;lt;project name&amp;gt;&lt;/tt&gt; and you're up and running.&lt;/p&gt;
+&lt;p&gt;Also, when working on servers, Tmux makes it really easy to attach to an existing session and you can watch or work in tandem with another developer.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="homebrew"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id9"&gt;Homebrew&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://mxcl.github.com/homebrew/"&gt;Homebrew&lt;/a&gt; is probably something we don't even need to mention. It's like &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;apt-get&lt;/span&gt;&lt;/tt&gt; or &lt;tt class="docutils literal"&gt;pacman&lt;/tt&gt; for your Mac, which means it'll let you install UNIX and Linux packages for your Mac through an easy command-line interface. You can even, with a bit of tinkering, install libraries that already come with your Mac, so if you need that bleeding-edge version of Ruby or Python, it's simple to install or uninstall.&lt;/p&gt;
+&lt;p&gt;We've written a couple of Homebrew recipes for internal use at our main client and that has definitely helped with keeping the team using the same packages and versions, regardless of machine or technical aptitude.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="skype"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id10"&gt;Skype&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I won't bother to link to Skype, I'm sure you already have it installed. We use it all day every day, though, since Chris and I pair program probably 98% of the day. Skype is how we conduct almost all of our client meetings and we talk through it all day ourselves. It's not a perfect system but it works really well and is less taxing on our machines than Google Hangouts.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="screen-sharing"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id11"&gt;Screen Sharing&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Yes, the built-in Screen Sharing on your Mac (go find it in your Finder, it's at &lt;tt class="docutils literal"&gt;System &amp;gt; Library &amp;gt; CoreServices&lt;/tt&gt; and stick it in your Dock). This, combined with Skype, a VPN or DynDNS url, and a couple of opened ports and you have a quick and easy way to do pair programming remotely. Set it to start in Observe Mode and you don't have to worry about disturbing the person you're working with either.&lt;/p&gt;
+&lt;div class="section" id="dyndns"&gt;
+&lt;h3&gt;DynDNS&lt;/h3&gt;
+&lt;p&gt;Chris and I each have a free domain name with &lt;a class="reference external" href="http://dyndns.org"&gt;DynDNS&lt;/a&gt; that we point to our machines through our routers and open up for web hosting (port 80) and screen sharing (the typical VNC ports). That way we can just point screen sharing to the URL and we're connected, no remembering IPs or having to look them up through the Network control panel or the terminal. Not a ground-breaking hint by any means but definitely one that has saved us time.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="balsamiq"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id12"&gt;Balsamiq&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;We use &lt;a class="reference external" href="http://www.balsamiq.com/"&gt;Balsamiq&lt;/a&gt; for mocking up interfaces before we build them. Most of our work currently is replacing existing interfaces, used by a fair-sized team for years, with new, better, smarter ones. We plan out most of them before we start to build them and vet them with the people that will be using them. Balsamiq gives us a great, low-fidelity version we can show people that doesn't lead them to make too many assumptions about appearance or advanced functionality.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="favorite-libraries-and-frameworks"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id13"&gt;Favorite libraries and frameworks&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;As far as favorite frameworks go, I'll give you three guesses which one is our favorite and the first two guesses don't count. We use Django for pretty much everything and haven't seen a reason to move away from it yet. But we don't live or work in a vacuum, so we've had to add a lot of other items to our repetoire.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://nginx.org"&gt;Nginx&lt;/a&gt; is our web server of choice. It's fast, lightweight, and really easy to set up. We'll write up our crazy workflow with Nginx, Lua, Redis, and Scrapy soon.&lt;/p&gt;
+&lt;p&gt;For DOM manipulation, we use jQuery. It's solid and dependable.&lt;/p&gt;
+&lt;p&gt;For Javascript MVC, we use &lt;a class="reference external" href="http://backbonejs.org"&gt;BackboneJS&lt;/a&gt;. It may not be the newest or most fancy of the MVC frameworks, but we've come to understand it somewhat well, it works reliably with &lt;a class="reference external" href="http://tastypieapi.org"&gt;Tastypie&lt;/a&gt;, and uses the awesome Underscore.js library. Sadly, we haven't been able to make extensive use of Backbone yet, but we hope to change that in the near future.&lt;/p&gt;
+&lt;p&gt;Last but not least, for design, we both definitely love the Twitter &lt;a class="reference external" href="http://twitter.github.com/bootstrap"&gt;Bootstrap&lt;/a&gt; collection. It's a great starting point for web design and really helps you get to creating the product instead of worrying about what it looks like.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="summary"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id14"&gt;Summary&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I think that pretty much covers the tools and libraries we end up touching in our day-to-day work. Our work and requirements are constantly changing, though, so this post might be one that we need to revist every six months or year. If you have any suggestions for new products to check out, or ways we can make our current favorites even better, let us know on Twitter or in the comments below. Thanks for reading.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="workflow"></category><category term="tools"></category></entry><entry><title>Change Request Workflow</title><link href="/change-request-workflow.html" rel="alternate"></link><updated>2012-02-26T11:01:00Z</updated><author><name>Kenneth</name></author><id>tag:,2012-02-26:change-request-workflow.html</id><summary type="html">&lt;p&gt;Before we start, let me explain a bit about what the app we're covering here is. It's a geo-spatial database, basically, of
+Points of Interest (POIs) for housing communities that we developed for a client of ours (or, rather, are still developing).
+Users and editors can both enter Points into the database, which is PostgreSQL with PostGIS, and then they can be associated
+with any community.  Obviosuly, though, that leads to the problem of Community A editing a POI and Community B showing that data
+without their knowledge, so we'd like to have an editor look at the changes first. That's the need that lead to our workflow.&lt;/p&gt;
+&lt;div class="section" id="models"&gt;
+&lt;h2&gt;Models&lt;/h2&gt;
+&lt;p&gt;First, let's start with the models.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIAbstract(LumberjackModel, models.Model):&lt;/span&gt;
+&lt;span class="x"&gt;    category = models.ForeignKey(Category, related_name=&amp;quot;%(class)s_points&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    name = models.CharField(max_length=255)&lt;/span&gt;
+&lt;span class="x"&gt;    address = models.CharField(max_length=255)&lt;/span&gt;
+&lt;span class="x"&gt;    address2 = models.CharField(max_length=255, blank=True)&lt;/span&gt;
+&lt;span class="x"&gt;    city = models.CharField(max_length=100)&lt;/span&gt;
+&lt;span class="x"&gt;    state = USPostalCodeField()&lt;/span&gt;
+&lt;span class="x"&gt;    zip_code = models.CharField(max_length=10)&lt;/span&gt;
+&lt;span class="x"&gt;    phone = PhoneNumberField(blank=True, default=&amp;quot;&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    url = models.URLField(blank=True, default=&amp;quot;&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    point = models.PointField(blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    objects = models.GeoManager()&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        abstract = True&lt;/span&gt;
+
+&lt;span class="x"&gt;    def __unicode__(self):&lt;/span&gt;
+&lt;span class="x"&gt;        return self.name&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def coords(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Return tuple of lat,lng&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        if self.point:&lt;/span&gt;
+&lt;span class="x"&gt;            return (self.point.get_coords()[1], self.point.get_coords()[0])&lt;/span&gt;
+&lt;span class="x"&gt;        return (None, None)&lt;/span&gt;
+
+&lt;span class="x"&gt;    @property&lt;/span&gt;
+&lt;span class="x"&gt;    def full_address(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Return a string of the full address&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        addresses = [self.address, self.address2, self.city, self.state,&lt;/span&gt;
+&lt;span class="x"&gt;            self.zip_code, &amp;quot;USA&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        return &amp;quot;, &amp;quot;.join(filter(lambda x: len(x) &amp;gt; 0, addresses))&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POI(POIAbstract):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Points of Interest model.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    pass&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POIChange(POIAbstract):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    Holds proposed changes to POIs&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    STATUS_CHOICES = (&lt;/span&gt;
+&lt;span class="x"&gt;        (0, &amp;quot;Pending&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;        (1, &amp;quot;Denied&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;        (2, &amp;quot;Approved&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    )&lt;/span&gt;
+
+&lt;span class="x"&gt;    poi = models.ForeignKey(POI, related_name=&amp;quot;changes&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    user = models.ForeignKey(User, related_name=&amp;quot;poi_changes&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;    submitted_on = models.DateField(auto_now_add=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    approved_by = models.ForeignKey(User, related_name=&amp;quot;poi_approvals&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;        blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    approved_on = models.DateField(blank=True, null=True, editable=False)&lt;/span&gt;
+&lt;span class="x"&gt;    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES,&lt;/span&gt;
+&lt;span class="x"&gt;        default=0, editable=False)&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        ordering = [&amp;quot;status&amp;quot;, &amp;quot;-submitted_on&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, there's not really anything too interesting about the models. We have an abstract model that we inherit both of our other models from. The approved record model is just the abstract model without it's
+&lt;tt class="docutils literal"&gt;abstract = True&lt;/tt&gt; setting. The change model, though, adds a few fields.&lt;/p&gt;
+&lt;p&gt;First we point to the record we're changing. Then we hold on to the user that submitted the changes, and the time of the request. We also want to have a record of who approved/denied it and when. And, of course, we
+need to know what the status of the change is. That'll let us change our minds later on.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="forms"&gt;
+&lt;h2&gt;Forms&lt;/h2&gt;
+&lt;p&gt;We usually end up building forms after we build models (more on this when we finish &lt;a class="reference external" href="http://gettingstartedwithdjango.com"&gt;GSWD&lt;/a&gt;), so let's look at them next.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIForm(forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    latitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+&lt;span class="x"&gt;    longitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = POI&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class POIChangeForm(forms.ModelForm):&lt;/span&gt;
+&lt;span class="x"&gt;    latitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+&lt;span class="x"&gt;    longitude = forms.FloatField(required=False,&lt;/span&gt;
+&lt;span class="x"&gt;        widget=forms.HiddenInput())&lt;/span&gt;
+
+&lt;span class="x"&gt;    class Meta:&lt;/span&gt;
+&lt;span class="x"&gt;        model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;        widgets = {&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;poi&amp;quot;: forms.HiddenInput(),&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;user&amp;quot;: forms.HiddenInput()&lt;/span&gt;
+&lt;span class="x"&gt;        }&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I've left out some of the boilerplate and &lt;tt class="docutils literal"&gt;Layout&lt;/tt&gt; bits from &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; (we haven't upgraded to &lt;a class="reference external" href="https://github.com/maraujop/django-crispy-forms"&gt;django-crispy-forms&lt;/a&gt; yet) but you get the general idea. Honestly, we could have made the second form inherit from
+the first and saved a bit of typing/space, but I guess we missed that. Both forms, ultimately, show the same thing. The latter form, though, holds onto a few extra fields that we need and that we'll set in the view.&lt;/p&gt;
+&lt;p&gt;Speaking of views, let's check them out.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="views"&gt;
+&lt;h2&gt;Views&lt;/h2&gt;
+&lt;p&gt;We're not going to look at the view that creates the original POI. It's just a standard
+&lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; that specifies our &lt;tt class="docutils literal"&gt;POIForm&lt;/tt&gt; as the &lt;tt class="docutils literal"&gt;form_class&lt;/tt&gt;. We have a couple of handy
+mixins on the views that let us control permissions and redirects, but we'll talk about them in
+another blog post.&lt;/p&gt;
+&lt;p&gt;The view we &lt;em&gt;do&lt;/em&gt; want to look at is our &lt;tt class="docutils literal"&gt;POIUpdateView&lt;/tt&gt; which is the one that let's users submit
+changes for a particular POI. Now, this view is the one that's linked to for each record on the
+list page; we never link to a view where a user can directly update a POI, not even for
+editors/superusers. So, here's our &lt;tt class="docutils literal"&gt;POIUpdateView&lt;/tt&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;span class="label label-info"&gt;note&lt;/span&gt; We use a few mixins below that aren't part of the standard Django library: &lt;tt class="docutils literal"&gt;LoginRequiredMixin&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;PermissionRequiredMixin&lt;/tt&gt;, &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt;, and &lt;tt class="docutils literal"&gt;SetHeadlineMixin&lt;/tt&gt;.&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIUpdateView(LoginRequiredMixin, PermissionRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    SuccessURLRedirectListMixin, SetHeadlineMixin, CreateView):&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    View allows users to propose changes to current POIs.&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    form_class = POIChangeForm&lt;/span&gt;
+&lt;span class="x"&gt;    headline = &amp;quot;Edit point of interest&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;    permission_required = &amp;quot;points.change_poi&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    success_list_url = &amp;quot;cms_points_list&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;cms/points/poi_form_edit.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def get_initial(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        Do you believe in magic, in a young devs heart?&lt;/span&gt;
+&lt;span class="x"&gt;        How the code can free &amp;#39;em whenever it starts,&lt;/span&gt;
+&lt;span class="x"&gt;        and it&amp;#39;s magic, if the code is groovy.&lt;/span&gt;
+
+&lt;span class="x"&gt;        Use POI information for initial data in POIChangeForm.&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = POI.objects.get(pk=self.kwargs[&amp;quot;pk&amp;quot;])&lt;/span&gt;
+&lt;span class="x"&gt;        initial = poi.__dict__.copy()&lt;/span&gt;
+&lt;span class="x"&gt;        del initial[&amp;quot;_state&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        initial.update({&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;category&amp;quot;: poi.category,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;latitude&amp;quot;: poi.point.get_coords()[1],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;longitude&amp;quot;: poi.point.get_coords()[0],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;user&amp;quot;: self.request.user,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;poi&amp;quot;: poi&lt;/span&gt;
+&lt;span class="x"&gt;        })&lt;/span&gt;
+&lt;span class="x"&gt;        return initial&lt;/span&gt;
+
+&lt;span class="x"&gt;    def post(self, request, pk, *args, **kwargs):&lt;/span&gt;
+&lt;span class="x"&gt;        response = super(POIUpdateView, self).post(request, pk, *args, **kwargs)&lt;/span&gt;
+
+&lt;span class="x"&gt;        url = settings.CMS_URL + reverse(&amp;quot;cms_points_change_detail&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;            kwargs={&amp;quot;pk&amp;quot;: self.object.pk})&lt;/span&gt;
+&lt;span class="x"&gt;        message = render_to_string(&amp;quot;cms/points/email/admin_email.html&amp;quot;, {&amp;quot;user&amp;quot;:&lt;/span&gt;
+&lt;span class="x"&gt;            self.object.user.get_full_name(), &amp;quot;url&amp;quot;: url})&lt;/span&gt;
+&lt;span class="x"&gt;        mail_admins(&amp;quot;POI Change Request&amp;quot;, message)&lt;/span&gt;
+
+&lt;span class="x"&gt;        return response&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I think how this view works is pretty cool. It's a fairly standard &lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; that points to
+our &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt; model. We don't just start with a blank &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;, though. By overriding
+&lt;tt class="docutils literal"&gt;get_initial&lt;/tt&gt; to load the &lt;tt class="docutils literal"&gt;POI&lt;/tt&gt; with the &lt;tt class="docutils literal"&gt;PK&lt;/tt&gt; that comes through in the URL, we can set the
+beginning data of the record. We fetch the instance, update our initial data with its values, and
+then pass it on through to the form.&lt;/p&gt;
+&lt;p&gt;Once the form is valid, a method I don't show above, called &lt;tt class="docutils literal"&gt;form_valid&lt;/tt&gt;, is fired by Django as part of its form-based generic view workflow and then we log the change in our logger, send a message to the user
+through Django's &lt;tt class="docutils literal"&gt;messages&lt;/tt&gt; app, and then our &lt;tt class="docutils literal"&gt;post&lt;/tt&gt; method gets called.  Learning the workflow order of &lt;tt class="docutils literal"&gt;CreateView&lt;/tt&gt; and &lt;tt class="docutils literal"&gt;UpdateView&lt;/tt&gt; (and, ultimately, &lt;tt class="docutils literal"&gt;FormView&lt;/tt&gt;) will save you a huge amount of time when
+you start customizing these things.  In our &lt;tt class="docutils literal"&gt;post&lt;/tt&gt; method, we render out an email to the admins and then return our response, which, thanks to our &lt;tt class="docutils literal"&gt;SuccessURLRedirectListMixin&lt;/tt&gt; will redirect the user to the route
+named in &lt;tt class="docutils literal"&gt;success_list_url&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;Now, all we've really done is create a new record. It still has to be approved. We do that in our
+next view, &lt;tt class="docutils literal"&gt;POIChangeApprovalView&lt;/tt&gt;, which the editor/superuser gets to through another list
+view. They can also reach it by clicking the link provided to them in the email.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;class POIChangeApprovalView(LoginRequiredMixin, SuperuserRequiredMixin,&lt;/span&gt;
+&lt;span class="x"&gt;    DetailView):&lt;/span&gt;
+
+&lt;span class="x"&gt;    model = POIChange&lt;/span&gt;
+&lt;span class="x"&gt;    template_name = &amp;quot;cms/points/poi_change_detail.html&amp;quot;&lt;/span&gt;
+
+&lt;span class="x"&gt;    def post(self, request, pk):&lt;/span&gt;
+&lt;span class="x"&gt;        approval = request.POST.get(&amp;quot;approval&amp;quot;, None)&lt;/span&gt;
+&lt;span class="x"&gt;        if approval:&lt;/span&gt;
+&lt;span class="x"&gt;            if approval == &amp;quot;approve&amp;quot;:&lt;/span&gt;
+&lt;span class="x"&gt;                self._approved()&lt;/span&gt;
+&lt;span class="x"&gt;            else:&lt;/span&gt;
+&lt;span class="x"&gt;                self._denied()&lt;/span&gt;
+&lt;span class="x"&gt;            return HttpResponseRedirect(reverse(&amp;quot;cms_points_change_list&amp;quot;))&lt;/span&gt;
+
+&lt;span class="x"&gt;        return HttpResponseForbidden()&lt;/span&gt;
+
+&lt;span class="x"&gt;    def _approved(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        It&amp;#39;s approved!&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = self.get_object()&lt;/span&gt;
+&lt;span class="x"&gt;        data = poi.__dict__.copy()&lt;/span&gt;
+&lt;span class="x"&gt;        del data[&amp;quot;_state&amp;quot;]&lt;/span&gt;
+&lt;span class="x"&gt;        data.update({&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;category&amp;quot;: poi.category.pk,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;latitude&amp;quot;: poi.coords[0],&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;longitude&amp;quot;: poi.coords[1],&lt;/span&gt;
+&lt;span class="x"&gt;        })&lt;/span&gt;
+&lt;span class="x"&gt;        form = POIForm(data, instance=poi.poi)&lt;/span&gt;
+&lt;span class="x"&gt;        if form.is_valid():&lt;/span&gt;
+&lt;span class="x"&gt;            form.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;            poi.status = 2&lt;/span&gt;
+&lt;span class="x"&gt;            poi.approved_by = self.request.user&lt;/span&gt;
+&lt;span class="x"&gt;            poi.approved_on = date.today()&lt;/span&gt;
+&lt;span class="x"&gt;            poi.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;            messages.success(self.request, &amp;quot;Point of interest updated.&amp;quot;)&lt;/span&gt;
+
+&lt;span class="x"&gt;            if poi.user.email:&lt;/span&gt;
+&lt;span class="x"&gt;                message = render_to_string(&amp;quot;cms/points/email/approved.html&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                    {&amp;quot;poi_name&amp;quot;: poi.name})&lt;/span&gt;
+&lt;span class="x"&gt;                send_mail(&amp;quot;OUR CLIENT - Change Request Approved&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                    message, settings.EMAIL_HOST_USER, [poi.user.email])&lt;/span&gt;
+
+&lt;span class="x"&gt;    def _denied(self):&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        No way Jose&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="x"&gt;        poi = self.get_object()&lt;/span&gt;
+&lt;span class="x"&gt;        poi.status = 1&lt;/span&gt;
+&lt;span class="x"&gt;        poi.approved_by = self.request.user&lt;/span&gt;
+&lt;span class="x"&gt;        poi.approved_on = date.today()&lt;/span&gt;
+&lt;span class="x"&gt;        poi.save()&lt;/span&gt;
+
+&lt;span class="x"&gt;        messages.success(self.request,&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;quot;Point of interest &amp;#39;%s&amp;#39; has not been updated.&amp;quot; % poi.poi.name)&lt;/span&gt;
+
+&lt;span class="x"&gt;        if poi.user.email:&lt;/span&gt;
+&lt;span class="x"&gt;            message = render_to_string(&amp;quot;cms/points/email/denied.html&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                {&amp;quot;poi_name&amp;quot;: poi.name})&lt;/span&gt;
+&lt;span class="x"&gt;            send_mail(&amp;quot;OUR CLIENT - Change Request Denied&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;                message, settings.EMAIL_HOST_USER, [poi.user.email])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This view is really straightfoward. The editor clicks one of two buttons, both of which point to
+this view. One contains a &lt;tt class="docutils literal"&gt;POST&lt;/tt&gt; variable indicating approval, the other indicating that the
+change has been denied. Then, based on the value, we peform the same action on the &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;If the change was denied, we just set the status on the change to our denied flag, set the date
+and user, and then save it.&lt;/p&gt;
+&lt;p&gt;If it was approved, we create an instance of the &lt;tt class="docutils literal"&gt;POIForm&lt;/tt&gt; with the changed &lt;tt class="docutils literal"&gt;POI&lt;/tt&gt; as the
+edited instance and our &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt;'s &lt;tt class="docutils literal"&gt;__dict__&lt;/tt&gt; as the new data. Since they're copies of each
+other, aside from the changes in the change model, of course, only the changed data really gets
+updated. We make sure the form is still valid (some &lt;a class="reference external" href="http://geodjango.org"&gt;GeoDjango&lt;/a&gt; stuff I left out of the form above)
+and then save the updated instance. We also update the &lt;tt class="docutils literal"&gt;POIChange&lt;/tt&gt; so it holds the new status,
+the approving user and date.&lt;/p&gt;
+&lt;p&gt;Regardless of the action taken, we send off an email to the user that submitted the change,
+letting him or her know what happened.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="summary"&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;This has, so far, been a great workflow for our users. They're able to trust that the data going
+out is verified and safe, but if anything gets out of date, we can change it ourselves or let the community of users tell us about the new data.&lt;/p&gt;
+&lt;p&gt;There is a lot of stuff I didn't cover, what the &lt;tt class="docutils literal"&gt;Point&lt;/tt&gt; field holds on to, how to actually use GeoDjango, what each of our custom mixins does (we're planning on releasing these as a package soon), and lots of other
+stuff. If you have questions/comments, hit us up on &lt;a class="reference external" href="http://twitter.com/brack3t"&gt;Twitter&lt;/a&gt;. Also, thanks to &lt;a class="reference external" href="http://pydanny.github.com"&gt;Daniel Greenfeld&lt;/a&gt; for a couple of edits.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="workflow"></category><category term="python"></category></entry><entry><title>Semantic Snakeoil</title><link href="/semantic-snakeoil.html" rel="alternate"></link><updated>2011-10-03T21:31:00Z</updated><author><name>Kenneth</name></author><id>tag:,2011-10-03:semantic-snakeoil.html</id><summary type="html">&lt;p&gt;For years now, we've been told that we should always use semantic class names and IDs in our HTML.
+And, in general, this is a good practice, I don't want anyone to think it's not. You &lt;em&gt;should&lt;/em&gt; make
+your markup, all aspects of it, as accurate and related as possible. The problem, though, comes
+when people become fanatical about their classes and IDs to the point of swearing off grid systems
+and CSS frameworks in the name of &amp;quot;proper&amp;quot; web development practices.&lt;/p&gt;
+&lt;p&gt;So why isn't it a big deal? Both the &lt;a class="reference external" href="http://www.w3.org/TR/html5-author/global-attributes.html#classes"&gt;W3C&lt;/a&gt; and the &lt;a class="reference external" href="http://developers.whatwg.org/elements.html#classes"&gt;WHATWG&lt;/a&gt; emphasize that the class attribute, and its values, if specified, should describe the nature of the content and not the presentation of it. And for the most part, I agree. This ideal has limits, though, that need to be addressed and understood. &lt;strong&gt;It's currently impossible to be 100% semantic and still be useful.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Let's start with the argument presented by the idealists: All class names and IDs should be semantic and address the nature of the element, not its display. This ends up with us needing to create new classes and ID for every project we do, tied directly to the use case of each bit of markup. Yes, some things could be repeated and copied from project to project, but a decent majority of the CSS would be unique. This is great if you're the only person working on something, or working with a small group that works together on many projects. This is rarely the case with large or open-source projects, though.&lt;/p&gt;
+&lt;p&gt;Now, let's look at the argument from the utilitarians: All class names should be generically semantic to the structure of the document and relate to the use case and nature of the element; IDs should be semantic to the project or page. This opens up the project to third-party grid systems and the like. So long as the class names have meaning to the document, even if it's not semantic meaning to the content it's wrapped around, it's still valid and logical.&lt;/p&gt;
+&lt;p&gt;For a second argument against made-to-order frameworks for each project: using third-party libraries like the awesome &lt;a class="reference external" href="https://twitter.github.com/bootstrap/"&gt;Twitter Bootstrap&lt;/a&gt;, newcomers to the project will either have experience with the library, or can refer to its documentation to get up to speed; if you're using a custom library of CSS for the project, a new developer needs to familiarize themselves with the whole thing with, lilkely, little to no documentation.&lt;/p&gt;
+&lt;p&gt;To my mind, and many other professionals, the point of the &lt;tt class="docutils literal"&gt;class&lt;/tt&gt; attribute is to describe the element or its content. The element, though, is the more important bit to describe since using a semantic element already describes the content. If you put a list of links into a &lt;tt class="docutils literal"&gt;&amp;lt;nav&amp;gt;&lt;/tt&gt; element, there's no reason to give it a class of &lt;tt class="docutils literal"&gt;nav&lt;/tt&gt; or &lt;tt class="docutils literal"&gt;menu&lt;/tt&gt; or the like. There is, however, plenty of reason to give it a class that describes how it relates to other elements, such as &lt;tt class="docutils literal"&gt;span6&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;Using these systems, as well, gives us the ability to reflow content in a way that remains semantic. To set the stage, we have a &lt;tt class="docutils literal"&gt;&amp;lt;section&amp;gt;&lt;/tt&gt; of content that is the main content of the site, and an &lt;tt class="docutils literal"&gt;&amp;lt;aside&amp;gt;&lt;/tt&gt; that is our sidebar. We want the page to reflow based on media queries.  If we use an idealistic set of classes, such as &lt;tt class="docutils literal"&gt;sidebar&lt;/tt&gt;, once the page reflows and the &lt;tt class="docutils literal"&gt;&amp;lt;aside&amp;gt;&lt;/tt&gt; ends up below the main content, its class no longer has the same semantic meaning. Yes, we could have used a class like &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;secondary-content&lt;/span&gt;&lt;/tt&gt; or the like, but few people seem to use class names like this. If, though, we use something like &lt;tt class="docutils literal"&gt;span6&lt;/tt&gt;, it loses no semantic meaning after the reflow as it is still spanning 6 of our columns. Yes, that's describing the display but it's describing it on relation to all the other elements, so it is semantic in context.&lt;/p&gt;
+&lt;p&gt;The other point I keep seeing being made is, that, to change the width of an element, the designer has to go and edit the HTML. If, though, you're using HTML correctly, to where classes describe more than one object, if I want only one instance of an object to be wider, I have to either add, remove, or edit a class in the HTML anyway. If your knee-jerk reaction is that &amp;quot;my classes aren't set up that way&amp;quot; and you're using classes like they're IDs, to where they're unique, you aren't using them correctly and should be using IDs on your elements. This also ties into more serious programming; if your model changes, you have to (usually) update your views/controllers and templates/views. This isn't a unique concept and shouldn't trip up any serious developer or designer.&lt;/p&gt;
+&lt;p&gt;Search engines don't seem to care about class values, either, so using more of them won't hurt your site's SEO (if you care about that). Also, as far as content being available, if people are scraping your HTML, it would be better to offer it in a more consumable format like an JSON API or an RSS feed (aka XML). This way the content is separated from your presentation of it and can be used however the consumer needs it.&lt;/p&gt;
+&lt;p&gt;So, I put forth a new definition for classes:&lt;/p&gt;
+&lt;blockquote&gt;
+There are no additional restrictions on the tokens authors can use in the class attribute, but authors are encouraged to use values that describe the nature of the content, rather than values that describe the desired presentation of the content. &lt;strong&gt;It is also valid to use values that describe the element.&lt;/strong&gt;&lt;/blockquote&gt;
+&lt;p&gt;Have comments? Continue the discussion on &lt;a class="reference external" href="http://news.ycombinator.com/item?id=3072260"&gt;Hacker News&lt;/a&gt;.&lt;/p&gt;
+</summary><category term="semantics"></category><category term="html"></category><category term="css"></category></entry><entry><title>Djangopeople.me</title><link href="/djangopeopleme.html" rel="alternate"></link><updated>2011-06-13T18:50:00Z</updated><author><name>Chris</name></author><id>tag:,2011-06-13:djangopeopleme.html</id><summary type="html">&lt;div class="section" id="what-is-it"&gt;
+&lt;h2&gt;What is it?&lt;/h2&gt;
+&lt;p&gt;At it's core, &lt;a class="reference external" href="http://djangopeople.me"&gt;djangopeople.me&lt;/a&gt; is a place for &lt;a class="reference external" href="https://www.djangoproject.com/"&gt;Django&lt;/a&gt; developers to register and be found based on their geographic location, whether it's by recruiters or a lonely Django developer like ourselves trying to find others close to him/her. That's the general idea behind the site.&lt;/p&gt;
+&lt;p&gt;We wanted to make it clean, simple and fast. For the maps we ended up using &lt;a class="reference external" href="http://leaflet.cloudmade.com/"&gt;Leaflet's&lt;/a&gt; open-source Javascript library. We initially started with Google Maps, but the rate limiting was too restrictive on the geocoding API for our needs and frankly, loading maps seemed very slow. So, with the project being free-to-use (and us being cheap), we looked for something else.&lt;/p&gt;
+&lt;p&gt;Yahoo! Maps was the next step as they had a decent API and allowed more requests. Google currently allows 2,500 requests per day and Yahoo allows 5,000 requests (geocoding). Yahoo's maps were faster to load but we seemed to have nothing but issues with &lt;a class="reference external" href="http://google.com/chrome"&gt;Google Chome&lt;/a&gt; throwing a YMAP Javascript error we could never track down. We didn't think it would be all that awesome telling Chrome users to clear their cache up to three times before the maps would load again (If you've had this issue and a have fix, for the love of all that is holy, let us know about it please).&lt;/p&gt;
+&lt;p&gt;After searching around for a day, we came across &lt;a class="reference external" href="http://leaflet.cloudmade.com/"&gt;Leaflet&lt;/a&gt;. It was simple to implement and the maps were extremely fast to load compared to Google and Yahoo. You could also make the argument that they don't have nearly the traffic that Google and Yahoo have but Leaftlet was simple and it worked. Also, our scientific method for testing the load times was simply us reloading pages over and over as we worked on functionality. So don't expect any charts. Chris is an impatient guy, so if he gets annoyed by something he's built, it's not going live.&lt;/p&gt;
+&lt;p&gt;There is one issue we ran into with Leaflet and it has yet to be resolved. Their geocoding API, after about two weeks of use, started retuning funky results. By funky I mean, resolving &lt;em&gt;Las Vegas, NV&lt;/em&gt;, to Livingston, Illinois. &lt;em&gt;Dallas, TX&lt;/em&gt; would come back as being in Australia. Chris emailed their support team and they have confirmed it is a bug but they do not have an idea of when it will be resolved. Aside from that, their service has been fantastic.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="it-s-already-been-done"&gt;
+&lt;h2&gt;It's already been done.&lt;/h2&gt;
+&lt;p&gt;This is true, &lt;a class="reference external" href="http://djangopeople.net"&gt;djangopeople.net&lt;/a&gt; was the inspiration for building djangopeople.me. We realized that djangopeople.net had been down for some time, intermittently. It was useful and we had both been contacted by people looking for Django developers through that site. So the original idea was to bring that functionality back and hopefully make it better.&lt;/p&gt;
+&lt;p&gt;Kenneth came across a posting on &lt;a class="reference external" href="http://convore.com"&gt;Convore&lt;/a&gt; when we were almost ready to launch the site. It appeared that a group of developers were getting together to bring djangopeople.net back online. We almost stopped working on the site as dp.net came back online for a short time. It was really slow and then ended up going back down a day later. So we decided to finish the small bug fixes we were working on and launch it.&lt;/p&gt;
+&lt;p&gt;So, just to be clear, djangopeople.me was inspired by &lt;a class="reference external" href="http://djangopeople.net"&gt;djangopeople.net&lt;/a&gt;. We just wanted to bring that back to the Python/Django community. We believe the interface is better and faster. Also, using &lt;a class="reference external" href="http://twitter.com"&gt;Twitter&lt;/a&gt; as the main auth system made it dead simple to sign up. We've had a few people ask for other authentication methods but at the moment Twitter provided exactly what we wanted with no hassle.&lt;/p&gt;
+&lt;p&gt;We use your Twitter username so it's very easy to find a profile of someone you already know and follow. This also makes it a little difficult to add other authentication methods as we'll now have to deal with allowing people to choose usernames and possibly picking a Twitter username that a future developer would sign up with. We're open to suggestions but we like the simplicity of using Twitter. Having recently wrapped up a project using the &lt;a class="reference external" href="https://github.com/facebook/python-sdk"&gt;Facebook Python SDK&lt;/a&gt;, it was nice for Twitter's auth system to just work and not get in the way.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-s-next"&gt;
+&lt;h2&gt;What's next?&lt;/h2&gt;
+&lt;p&gt;We've had a good amount of people sign up and we've gotten some good feedback. We have a couple of
+ideas for tying into other Django services but we're waiting for replies to our emails at the
+moment. We both contract/freelance full time, so we'll probably spend the next week or two throwing
+ideas around before we know what the next step is. In the meantime, check out the site and let us
+know what you love and/or hate about it. We've got thick skins.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="django"></category><category term="project"></category></entry></feed>
