@@ -3,7 +3,6 @@ Getting Started with Django Kickstarter
 =======================================
 
 :author: Kenneth
-:status: draft
 :tags: projects, django, teaching
 
 Recently we wrapped up a `Kickstarter`_ for our `Getting Started with Django`_ video series. I wanted to outline what we've done on the project, what we're going to do, and what it's like to run a Kickstarter.
