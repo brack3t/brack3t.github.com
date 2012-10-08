@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>A Pelican Blog - html</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href=".././theme/css/main.css" type="text/css" />
+        
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="A Pelican Blog Atom Feed" />
+        
+        
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie.css"/>
+                <script src=".././js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+
+        <header id="banner" class="body">
+                <h1><a href="../.">A Pelican Blog </a></h1>
+                <nav><ul>
+                
+                
+                
+                    <li><a href=".././pages/about-us.html">About</a></li>
+                
+                
+                
+                    <li ><a href=".././category/django.html">django</a></li>
+                
+                    <li ><a href=".././category/posts.html">posts</a></li>
+                
+                    <li ><a href=".././category/web-development.html">web development</a></li>
+                
+                </ul></nav>
+        </header><!-- /#banner -->
+                
+
+            
+
+        
+        
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href=".././semantic-snakeoil.html">Semantic Snakeoil</a></h1> 
+                    <footer class="post-info">
+        <abbr class="published" title="2011-10-03T21:31:00">
+                Mon 03 October 2011
+        </abbr>
+
+        
+        <address class="vcard author">
+                By <a class="url fn" href=".././author/kenneth.html">Kenneth</a>
+        </address>
+        
+<p>In <a href=".././category/web-development.html">web development</a>. </p>
+<p>tags: <a href=".././tag/semantics.html">semantics</a><a href=".././tag/html.html">html</a><a href=".././tag/css.html">css</a></p>
+
+
+</footer><!-- /.post-info --><p>For years now, we've been told that we should always use semantic class names and IDs in our HTML.
+And, in general, this is a good practice, I don't want anyone to think it's not. You <em>should</em> make
+your markup, all aspects of it, as accurate and related as possible. The problem, though, comes
+when people become fanatical about their classes and IDs to the point of swearing off grid systems
+and CSS frameworks in the name of &quot;proper&quot; web development practices.</p>
+<p>So why isn't it a big deal? Both the <a class="reference external" href="http://www.w3.org/TR/html5-author/global-attributes.html#classes">W3C</a> and the <a class="reference external" href="http://developers.whatwg.org/elements.html#classes">WHATWG</a> emphasize that the class attribute, and its values, if specified, should describe the nature of the content and not the presentation of it. And for the most part, I agree. This ideal has limits, though, that need to be addressed and understood. <strong>It's currently impossible to be 100% semantic and still be useful.</strong></p>
+<p>Let's start with the argument presented by the idealists: All class names and IDs should be semantic and address the nature of the element, not its display. This ends up with us needing to create new classes and ID for every project we do, tied directly to the use case of each bit of markup. Yes, some things could be repeated and copied from project to project, but a decent majority of the CSS would be unique. This is great if you're the only person working on something, or working with a small group that works together on many projects. This is rarely the case with large or open-source projects, though.</p>
+<p>Now, let's look at the argument from the utilitarians: All class names should be generically semantic to the structure of the document and relate to the use case and nature of the element; IDs should be semantic to the project or page. This opens up the project to third-party grid systems and the like. So long as the class names have meaning to the document, even if it's not semantic meaning to the content it's wrapped around, it's still valid and logical.</p>
+<p>For a second argument against made-to-order frameworks for each project: using third-party libraries like the awesome <a class="reference external" href="https://twitter.github.com/bootstrap/">Twitter Bootstrap</a>, newcomers to the project will either have experience with the library, or can refer to its documentation to get up to speed; if you're using a custom library of CSS for the project, a new developer needs to familiarize themselves with the whole thing with, lilkely, little to no documentation.</p>
+<p>To my mind, and many other professionals, the point of the <tt class="docutils literal">class</tt> attribute is to describe the element or its content. The element, though, is the more important bit to describe since using a semantic element already describes the content. If you put a list of links into a <tt class="docutils literal">&lt;nav&gt;</tt> element, there's no reason to give it a class of <tt class="docutils literal">nav</tt> or <tt class="docutils literal">menu</tt> or the like. There is, however, plenty of reason to give it a class that describes how it relates to other elements, such as <tt class="docutils literal">span6</tt>.</p>
+<p>Using these systems, as well, gives us the ability to reflow content in a way that remains semantic. To set the stage, we have a <tt class="docutils literal">&lt;section&gt;</tt> of content that is the main content of the site, and an <tt class="docutils literal">&lt;aside&gt;</tt> that is our sidebar. We want the page to reflow based on media queries.  If we use an idealistic set of classes, such as <tt class="docutils literal">sidebar</tt>, once the page reflows and the <tt class="docutils literal">&lt;aside&gt;</tt> ends up below the main content, its class no longer has the same semantic meaning. Yes, we could have used a class like <tt class="docutils literal"><span class="pre">secondary-content</span></tt> or the like, but few people seem to use class names like this. If, though, we use something like <tt class="docutils literal">span6</tt>, it loses no semantic meaning after the reflow as it is still spanning 6 of our columns. Yes, that's describing the display but it's describing it on relation to all the other elements, so it is semantic in context.</p>
+<p>The other point I keep seeing being made is, that, to change the width of an element, the designer has to go and edit the HTML. If, though, you're using HTML correctly, to where classes describe more than one object, if I want only one instance of an object to be wider, I have to either add, remove, or edit a class in the HTML anyway. If your knee-jerk reaction is that &quot;my classes aren't set up that way&quot; and you're using classes like they're IDs, to where they're unique, you aren't using them correctly and should be using IDs on your elements. This also ties into more serious programming; if your model changes, you have to (usually) update your views/controllers and templates/views. This isn't a unique concept and shouldn't trip up any serious developer or designer.</p>
+<p>Search engines don't seem to care about class values, either, so using more of them won't hurt your site's SEO (if you care about that). Also, as far as content being available, if people are scraping your HTML, it would be better to offer it in a more consumable format like an JSON API or an RSS feed (aka XML). This way the content is separated from your presentation of it and can be used however the consumer needs it.</p>
+<p>So, I put forth a new definition for classes:</p>
+<blockquote>
+There are no additional restrictions on the tokens authors can use in the class attribute, but authors are encouraged to use values that describe the nature of the content, rather than values that describe the desired presentation of the content. <strong>It is also valid to use values that describe the element.</strong></blockquote>
+<p>Have comments? Continue the discussion on <a class="reference external" href="http://news.ycombinator.com/item?id=3072260">Hacker News</a>.</p>
+
+                </article>
+                
+                    
+                
+            </aside><!-- /#featured -->
+            
+        
+        
+        
+            </ol><!-- /#posts-list -->
+            
+            </section><!-- /#content -->
+        
+    
+
+
+        <section id="extras" class="body">
+        
+        
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compressing Tastypie Resources [ brack3t ]</title>
+    <meta name="description" content="">
+    <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href=".././" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/github.css" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <script>
+    var _gaq = _gaq || [];
+    _gaq.push(["_setAccount", "UA-4642386-4"]);
+    _gaq.push(["_trackPageview"]);
+
+    (function() {
+        var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+        ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+	
+<script type="text/javascript">
+	var disqus_identifier = "compressing-tastypie-resources.html";
+	(function() {
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = 'http://brack3t.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	})();
+</script>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row-fluid">
+            <div class="span5">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                    <h6>Two guys... and Python.</h6>
+                </header>
+            </div>
+            <aside class="span2" id="sidebar" role="complementary">
+                <nav>
+                    <ul class="unstyled">
+                        
+                        
+                            
+                            <li><a href=".././pages/pages/about-us.html">About</a></li>
+                            
+                        
+                        <li><a href=".././pages/projects.html">Projects</a></li>
+                        <li><a href=".././archives.html">Archives</a></li>
+                        <li><a href=".././tags.html">Tags</a></li>
+                    </ul>
+                </nav>
+            </aside>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span7" id="main" role="main">
+                
+                
+    <article>
+        <header>
+            <h1><span class="slabtext">Compressing Tastypie Resources</span></h1>
+            <h6><span class="permalink">Published: <a  href=".././compressing-tastypie-resources.html">06-26-2012</a></span>
+<span class="author">by <strong>Kenneth</strong></span>
+<span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/tastypie.html">tastypie</a> </span>
+
+</h6>
+        </header>
+        <p>Django has a great little API library out there called <a class="reference external" href="http://tastypieapi.org">django-tastypie</a>. We've mentioned it before, in our <a class="reference external" href="http://brack3t.com/ajax-and-django-views.html">post about AJAX</a>, but didn't go over how to really use it. We won't go over all the ins and outs in this post, either. Mostly just wanted to go over a handy little tip if you're using Tastypie with related resources but only need to hold on to a small part of the related records.</p>
+<div class="section" id="models">
+<h2>Models</h2>
+<p>For the purposes of this blog post, we're just going to set up two models. The first will be pretty much any model you want to imagine, but we'll use an author.</p>
+<div class="highlight"><pre><span class="x">class Author(models.Model):</span>
+<span class="x">    name = models.CharField(max_length=255)</span>
+<span class="x">    birth_date = models.DateField(blank=True, null=True)</span>
+<span class="x">    bio = models.TextField(blank=True, default=&#39;&#39;)</span>
+</pre></div>
+<p>Like I said, this could be any model in your system. The second one could be, too, but it has to relate to the first. We'll follow the usual track with authors and make a model for their books.</p>
+<div class="highlight"><pre><span class="x">class Book(models.Model):</span>
+<span class="x">    title = models.CharField(max_length=1024)</span>
+<span class="x">    publication_date = models.DateField(blank=True, null=True)</span>
+<span class="x">    summary = models.TextField(blank=True, default=&#39;&#39;)</span>
+<span class="x">    author = models.ForeignKey(Author, related_name=&quot;books&quot;)</span>
+</pre></div>
+<p>This sets up a really simple model that relates with a many-to-one relationship back to our original model.</p>
+</div>
+<div class="section" id="resources">
+<h2>Resources</h2>
+<p>If you haven't worked with Tastypie before, the basic idea is that you create resources, usually <a href="#id1"><span class="problematic" id="id2">``</span></a>ModelResource``s for each of your models that you want to share through your API. You can create multiple APIs if you want, perhaps with different authentication/authorization schemes or to hold on to different parts of your app. We use this concept for some of our clients to we can have different APIs on the front- and backends. We need to create resources for both of our models.</p>
+<div class="system-message" id="id1">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">./posts/compressing-tastypie-resources.rst</tt>, line 39); <em><a href="#id2">backlink</a></em></p>
+Inline literal start-string without end-string.</div>
+<div class="highlight"><pre><span class="x">class AuthorResource(ModelResource):</span>
+<span class="x">    books = fields.ToManyField(</span>
+<span class="x">        &quot;library.api.BookResource&quot;,</span>
+<span class="x">        &quot;books&quot;, full=True)</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        authentication = Authentication()</span>
+<span class="x">        authorization = Authorization()</span>
+
+<span class="x">        queryset = Author.objects.all()</span>
+<span class="x">        resource_name = &quot;authors&quot;</span>
+
+<span class="x">        filtering = {</span>
+<span class="x">            &quot;id&quot;: [&quot;exact&quot;],</span>
+<span class="x">            &quot;books&quot;: ALL_WITH_RELATIONS,</span>
+<span class="x">        }</span>
+
+<span class="x">    def dehydrate(self, bundle):</span>
+<span class="x">        bundle.data[&quot;titles&quot;] = bundle.obj.books.values_list(&quot;title&quot;)</span>
+<span class="x">        return bundle</span>
+
+
+<span class="x">class BookResources(ModelResource):</span>
+<span class="x">    author = fields.ForeignKey(&quot;library.api.AuthorResource&quot;, &quot;author&quot;)</span>
+
+<span class="x">    class Meta:</span>
+<span class="x">        authentication = Authentication()</span>
+<span class="x">        authorization = Authorization()</span>
+
+<span class="x">        queryset = Book.objects.all()</span>
+<span class="x">        resource_name = &quot;books&quot;</span>
+
+<span class="x">        filtering = {</span>
+<span class="x">            &quot;author&quot;: ALL_WITH_RELATIONS,</span>
+<span class="x">            &quot;id&quot;: [&quot;exact&quot;],</span>
+<span class="x">        }</span>
+</pre></div>
+<p>Both of these resources are pretty simple and work just fine.</p>
+</div>
+
+    </article>
+
+	
+	<section>
+		<header>
+			<h1>Comments</h1>
+		</header>
+		<div id="disqus_thread"></div>
+	</section>
+	
+
+
+            </div>
+        </div>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href=".././">ATOM feed</a></p></footer>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src=".././brack3t-theme/assets/jquery-1.7.1.min.js"></script>
+    <script src=".././brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src=".././brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src=".././brack3t-theme/assets/highlight.pack.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText();
+            $(".fittext").fitText(0.8);
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
+        });
+    </script>
+  </body>
+</html>
