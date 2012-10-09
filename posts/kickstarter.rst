@@ -3,7 +3,6 @@ Getting Started with Django Kickstarter
 =======================================
 
 :author: Kenneth
-:status: draft
 :tags: projects, django, teaching
 
 Recently we wrapped up a `Kickstarter`_ for our `Getting Started with Django`_ video series. I wanted to outline what we've done on the project, what we're going to do, and what it's like to run a Kickstarter.
@@ -24,7 +23,7 @@ We launch on August 24th in the morning.
 
 Anyone who has sold software or ran a campaign like this will know what I'm talking about, but the anticipation of waiting for the first pledge to come in is hard to deal with. Thankfully, for us, our project was somewhat popular. We had over $2,400 in pledges in the first 24 hours.
 
-Also, after launching it, I was contacted by Jacob Kaplan-Moss about the Django Software Foundation helping to funding the project but with the caveat that there should be free versions of the videos. Anyone who watched the original series will remember that they were all free, and I was more than happy to have a free version. In fact, this got into my head and I decided that if the funds hit $7,500 (my original goal), I'd make them all free, instead of the $10 per video I was originally going to charge. Ironically, by the time the DSF got the funds approved and announced the funding at DjangoCon, we were already over the free video mark.
+Also, after launching it, I was contacted by Jacob Kaplan-Moss about the Django Software Foundation helping to fund the project but with the caveat that there should be free versions of the videos. Anyone who watched the original series will remember that they were all free, and I was more than happy to have a free version. In fact, this got into my head and I decided that if the funds hit $7,500 (my original goal), I'd make them all free, instead of the $10 per video I was originally going to charge. Ironically, by the time the DSF got the funds approved and announced the funding at DjangoCon, we were already over the free video mark.
 
 Finally, the funding ended on September 23rd at a whopping **$13,354**. Way, way more than either of us expected it to get to. I contribute this to a couple of things.
 
@@ -46,7 +45,7 @@ So, now that it's over and all the money is collected (minus the fees for Kickst
 
 We got a new mic and boom arm to provide better audio recording than the original series. The `mic`_ is a RØDE Podcaster with a RØDE boom arm and shockmount to go with it. I also picked up a Western Digital `drive`_ to use as backup and for file transfer when we work physically together on the project.
 
-And, to some people's disappointment, we ordered stickers from `Sticker Mule`_, both with the Getting Started With Django logo and also the Django Pony. They should arrived this week or next and we'll start mailing them out after that. This'll be our first experience with doing a lot of mail distribution, especially to other countries, so if anyone has any advice, we'd love to hear it.
+And, to some people's disappointment, we ordered stickers from `Sticker Mule`_, both with the Getting Started With Django logo and also the Django Pony. They should arrive this week or next and we'll start mailing them out after that. This'll be our first experience with doing a lot of mail distribution, especially to other countries, so if anyone has any advice, we'd love to hear it.
 
 As for the actual content of the project, we've planned out most of what the app we'll be building will do and started on outlining the first couple of episodes. Since this series is about more than just code, we have to take a lot of things into consideration for explaining, for example, how to go about solving your own problems in the Django community (IRC, mailing lists, asking questions intelligently, ``pdb`` and the like, etc).
 
