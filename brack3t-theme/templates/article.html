@@ -4,7 +4,7 @@
 {% block content %}
     <article>
         <header>
-            <h1><span class="slabtext">{{ article.title }}</span></h1>
+            <h1><a href="{{ SITEURL }}/{{ article.url }}" class="slabtext">{{ article.title }}</a></h1>
             <h6>{% include "metadata.html" %}</h6>
         </header>
         {{ article.content }}

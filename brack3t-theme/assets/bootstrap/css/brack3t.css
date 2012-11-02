@@ -7,7 +7,7 @@ html,body{font-family:"Exo","Helvetica Neue",Helvetica,Arial,sans-serif;}
 .slabtextinactive .slabtext{display:inline;white-space:normal;}
 .slabtextdone .slabtext{display:block;line-height:0.8;}
 #main{padding-top:3em;}
-article{margin-bottom:5em;}article h1{font-size:60px;font-weight:900;margin-bottom:0.25em;text-transform:uppercase;}article h1 a{color:#333333;font-weight:inherit;width:125%;}article h1 a:hover{color:#0088cc;text-decoration:none;}
+article{margin-bottom:5em;}article h1{font-size:60px;font-weight:900;margin-bottom:0.25em;text-transform:uppercase;width:125%;}article h1 a{color:#333333;font-weight:inherit;width:100%;}article h1 a:hover{color:#0088cc;text-decoration:none;}
 article header{margin-bottom:0.75em;}article header h6 span{font-size:1.25em;margin-left:1em;white-space:pre;}article header h6 span:first-child{margin-left:0;}
 article header h6 span strong{color:#222222;}
 article time{font-weight:400;}
