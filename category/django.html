@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8">
     <title>brack3t</title>
     <meta name="description" content="">
     <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=".././brack3t-theme/assets/favicon.ico">
     <link href=".././" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
@@ -36,10 +37,10 @@
 
     <div class="container">
         <div class="row-fluid">
-            <div class="span5">
+            <div class="span8">
                 <header id="logo" role="banner">
                     <h1><a href="/">Brack3t</a></h1>
-                    <h6>Two guys... and Python.</h6>
+                    <p>Two guys&hellip; and Python.</p>
                 </header>
             </div>
             <aside class="span2" id="sidebar" role="complementary">
@@ -60,7 +61,7 @@
         </div>
 
         <div class="row-fluid">
-            <div class="span7" id="main" role="main">
+            <div class="span7 offset1" id="main" role="main">
                 
                 
 
@@ -159,14 +160,17 @@ Users and editors can both enter ...</p> <a class="" href=".././change-request-w
     ================================================== -->
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src=".././brack3t-theme/assets/jquery-1.7.1.min.js"></script>
+    <script src=".././brack3t-theme/assets/jquery-1.8.2.min.js"></script>
+    <script src=".././brack3t-theme/assets/modernizr.js"></script>
     <script src=".././brack3t-theme/assets/jquery.slabtext.min.js"></script>
     <script src=".././brack3t-theme/assets/jquery.fittext.js"></script>
     <script src=".././brack3t-theme/assets/highlight.pack.js"></script>
     <script>
         $(function() {
-            $(".slabtext").slabText();
-            $(".fittext").fitText(0.8);
+            $(".slabtext").slabText({
+                "maxFontSize": 200,
+                "viewportBreakpoint": 768
+            });
             $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
         });
     </script>

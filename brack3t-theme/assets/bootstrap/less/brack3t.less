@@ -2,7 +2,7 @@
 @import "mixins.less";
 
 html, body {
-    font-family: "Exo", "helvetica neue", helvetica, arial;
+    font-family: "Exo", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .slabtexted .slabtext {
@@ -23,18 +23,18 @@ html, body {
 }
 
 article {
-    margin-bottom: 3em;
+    margin-bottom: 5em;
 
     h1 {
         font-size: 60px;
         font-weight: 900;
         margin-bottom: 0.25em;
         text-transform: uppercase;
-        text-align: center;
 
         a {
             color: @grayDark;
             font-weight: inherit;
+            width: 125%;
 
             &:hover {
                 color: @linkColor;
@@ -44,34 +44,31 @@ article {
     }
 
     header {
-        margin-bottom: 0.5em;
+        margin-bottom: 0.75em;
 
-        h6 {
-            text-align: center;
-            span {
-                margin-left: 1em;
-                white-space: pre;
+        h6 span {
+            font-size: 1.25em;
+            margin-left: 1em;
+            white-space: pre;
 
-                &:first-child {
-                    margin-left: 0;
-                }
+            &:first-child {
+                margin-left: 0;
+            }
 
-                strong {
-                    color: @grayDarker;
-                }
+            strong {
+                color: @grayDarker;
             }
         }
     }
 
     time {
-        font-size: 1.5em;
         font-weight: 400;
     }
 
     p {
-        font-size: 14px;
-        line-height: 24px;
-        margin-bottom: 12px;
+        font-size: 16px;
+        line-height: 28px;
+        margin-bottom: 1em;
     }
 
     a {
@@ -159,26 +156,33 @@ aside {
 }
 
 #logo {
-    padding: 3em 0 2em;
+    padding: 1em 0 2em;
     position: relative;
 
     h1 a {
-        background: transparent url("../../logo.png") left top no-repeat;
+        background: transparent left top no-repeat;
+        background-image: url("../../brack3t-logo.png");
+        background-size: contain;
         display: block;
-        height: 228px;
+        height: 300px;
         text-indent: -9999em;
-        width: 395px;
+        width: 100%;
     }
 
-    h6 {
+    p {
+        bottom: 90px;
+        font-size: 1.75em;
         left: 115px;
         position: absolute;
-        top: 200px;
     }
 }
 
+.svg #logo h1 a {
+    background-image: url("../../brack3t-logo.svg");
+}
+
 footer {
-    border-top: 3px solid #000;
+    border-top: 4px double #000;
     padding-top: 10px;
 
     p {
