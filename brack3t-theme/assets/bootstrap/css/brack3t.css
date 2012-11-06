@@ -2,7 +2,8 @@
 .clearfix:after{clear:both;}
 .hide-text{font:a;color:transparent;text-shadow:none;background-color:transparent;border:0;}
 .input-block-level{display:block;width:100%;min-height:30px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;}
-html,body{font-family:"Exo","Helvetica Neue",Helvetica,Arial,sans-serif;}
+html,body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
+h1,h2,h3,h4,h5,h6{font-family:"Exo","Helvetica Neue",Helvetica,Arial,sans-serif;}
 .slabtexted .slabtext{display:inline-block;white-space:nowrap;}
 .slabtextinactive .slabtext{display:inline;white-space:normal;}
 .slabtextdone .slabtext{display:block;line-height:0.8;}
@@ -20,7 +21,7 @@ aside h1{font-weight:900;margin-top:1em;max-width:50%;text-transform:uppercase;}
 aside time{font-size:1.5em;font-weight:400;}
 #sidebar nav{background:#333333;overflow:hidden;padding:1em 0;}#sidebar nav ul{margin:0 auto;overflow:hidden;width:60%;}#sidebar nav ul li{float:left;width:100%;}#sidebar nav ul li a{color:#ffffff;display:block;font-weight:700;letter-spacing:0.125rem;padding:1em;text-transform:uppercase;}
 #logo{padding:1em 0 2em;position:relative;}#logo h1 a{background:transparent left top no-repeat;background-image:url("../../brack3t-logo.png");background-size:contain;display:block;height:300px;text-indent:-9999em;width:100%;}
-#logo p{bottom:90px;font-size:1.75em;left:115px;position:absolute;}
+#logo p{bottom:90px;font-family:"Exo","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:1.75em;left:115px;position:absolute;}
 .svg #logo h1 a{background-image:url("../../brack3t-logo.svg");}
 footer{border-top:4px double #000;padding-top:10px;}footer p{text-align:center;}
 @media (max-width:768px){article h1{text-align:center;} #sidebar nav{padding-top:0;}#sidebar nav ul li{float:left;width:auto;}}@media (min-width:768px) and (max-width:1024px){#sidebar nav ul{width:100%;} #sidebar{float:right;}}
