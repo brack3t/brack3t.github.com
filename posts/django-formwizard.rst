@@ -63,7 +63,7 @@ Now we jump to ``urls.py``.
     )
 
     product_wizard = ProductWizardView.as_view(named_product_forms,
-        url_name="shop:product_wizard_step")
+        url_name="product_wizard_step")
 
     urlpatterns = patterns('',
         url(r"^productwizard/(?P<step>[-\w]+)/$", product_wizard,
@@ -75,7 +75,7 @@ You can see what I mean about how messy ``urls.py`` has quickly become.
 
 First, we import our forms and the view we stubbed out. Since I need multiple forms for building out shipping options and product photos, I spin up a couple of formset factories. For the record, I hate this implementation, too, if anyone wants to tackle a better invocation.
 
-The tuple of two-tuples that is ``named_product_forms`` is where a bit of the magic happens. The first item in each tuple is the name of the step. This'll show up in your URL and you'll string-match this if you need to do special work on any given step (more on this in a minute). You pass this list of forms into your views ``as_view()`` method when you instantiate the view, along with a name for the **step** version of your wizard view.
+The tuple of two-tuples that is ``named_product_forms`` is where a bit of the magic happens. The first item in each tuple is the name of the step. This'll show up in your URL and you'll string-match this if you need to do special work on any given step (more on this in a minute). You pass this list of forms into your views ``as_view()`` method when you instantiate the view, along with a name for the **step** url version of your wizard view.
 
 In your ``urlpatterns``, you'll define two URLs for the one view, one that has a variable for the step and one that doesn't. These can probably be combined but, in my experiments, DFWs aren't really friendly to you being too clever.
 
@@ -104,9 +104,11 @@ All DFWs have a method named ``done()`` that takes one explicit arg, ``form_list
 
         messages.error(self.request, _("Something went wrong creating your "
             "product. Please try again or contact support."))
-        return HttpResponseRedirect(reverse("shops:product_wizard"))
+        return HttpResponseRedirect(reverse("product_wizard"))
 
-The first thing I do is assign my forms to different variables for ease of reach. I have a few methods on my class for creating each of my model types. Each of these methods returns either ``True`` or ``False``, which makes my call to ``any()`` the absolute easiest way to make sure they're all successful. If they are, I dump the wizard's variable from the session, set a message, and redirect (as you should always do after a ``POST``). If not, I set another message and redirect back to the wizard view. This'll send the user to the last step of the form, just in case something else has come up.
+The first thing I do is assign my forms to different variables for ease of reach. I have a few methods on my class for creating each of my model types. Each of these methods returns either ``True`` or ``False``, which makes my call to ``any()`` the absolute easiest way to make sure they're all successful. If they are, I dump the wizard's variable from the session, set a message, and redirect (as you should always do after a ``POST``). If not, I set another message and redirect back to the wizard view. This'll send the user to the last step of the form, just in case something else has come up. If, somehow, the user got to the ``done()`` step before completing the entire wizard, they'd be redirected to the last step they completed.
+
+The session variable is created by Django by appending an un-camel-cased version of your class name to the word "wizard_". This isn't specified in the docs anywhere, but you can see the build up of it `here in Github`_. I found it just by examining the ``request.session`` object in a PDB shell.
 
 One other method I overrode on the view is ``get_form_kwargs``.
 
@@ -150,9 +152,11 @@ I had to tell my forms not to render the form tag since I needed to be able to o
 Conclusion
 ==========
 
-Hopefully this gives you a pretty good idea of how to implement DFWs in your own product. They're a fairly useful way to create new items or lead a user through a lengthy form or process. Sadly it's not really useful for editing since it's difficult to pass in instances in the appropriate places. I'd love to see the docs expanded on this. I'd also love to see the implementation expanded to make it easier to handle DFWs for editing existing instances.
+Hopefully this gives you a pretty good idea of how to implement DFWs in your own product. They're a fairly useful way to create new items or lead a user through a lengthy form or process. Sadly it's not really useful for editing since it's difficult to pass in instances in the appropriate places. I'd love to see the docs expanded on this, both with actual documentation and with better examples.
 
 
 .. _Django Form Wizard: https://docs.djangoproject.com/en/1.4/ref/contrib/formtools/form-wizard/
 .. _django-crispy-forms: http://django-crispy-forms.readthedocs.org/en/d-0/
+.. _here in Github: https://github.com/django/django/blob/master/django/contrib/formtools/wizard/storage/base.py#L16
+
 
