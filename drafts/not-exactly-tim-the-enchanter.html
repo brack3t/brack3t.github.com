@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <title>Not Exactly Tim the Enchanter [ brack3t ]</title>
+    <meta name="description" content="">
+    <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/ico" href=".././brack3t-theme/assets/favicon.ico">
+    <link href=".././" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/github.css" rel="stylesheet">
+    <link href=".././brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <script>
+    var _gaq = _gaq || [];
+    _gaq.push(["_setAccount", "UA-4642386-4"]);
+    _gaq.push(["_trackPageview"]);
+
+    (function() {
+        var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+        ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+	
+<script type="text/javascript">
+	var disqus_identifier = "not-exactly-tim-the-enchanter.html";
+	(function() {
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = 'http://brack3t.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	})();
+</script>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row-fluid">
+            <div class="span8">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                    <p>Two guys&hellip; and Python.</p>
+                </header>
+            </div>
+            <aside class="span2" id="sidebar" role="complementary">
+                <nav>
+                    <ul class="unstyled">
+                        
+                        
+                            
+                        
+                        <li><a href=".././pages/projects.html">Projects</a></li>
+                        <li><a href=".././archives.html">Archives</a></li>
+                        <li><a href=".././tags.html">Tags</a></li>
+                    </ul>
+                </nav>
+            </aside>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span7 offset1" id="main" role="main">
+                
+                
+    <article>
+        <header>
+            <h1><a href=".././not-exactly-tim-the-enchanter.html" class="slabtext">Not Exactly Tim the Enchanter</a></h1>
+            <h6><span class="permalink">Published: <a  href=".././not-exactly-tim-the-enchanter.html">11-05-2012</a></span>
+<span class="author">by <strong>Kenneth</strong></span>
+<span class="tags">tags: <a href=".././tag/django.html">django</a> <a href=".././tag/forms.html">forms</a> <a href=".././tag/formwizard.html">formwizard</a> </span>
+
+</h6>
+        </header>
+        <p>Django has always been hailed as having great, awesome documentation. And, for the most part, this distinction has been deserved. But every once in a while, you find an area that's just...lacking. An area that you know exists but you've never gone into because it didn't come up and no one else used it but then you <em>finally</em> got a reason to use it...and then you find out it's so lacking in documentation that you have to dive into the source code.</p>
+<p>This is one of those areas. Welcome to <a class="reference external" href="https://docs.djangoproject.com/en/1.4/ref/contrib/formtools/form-wizard/">Django Form Wizard</a>.</p>
+<div class="section" id="what-is-django-form-wizard">
+<h2>What is Django Form Wizard?</h2>
+<p>At it's most basic, Django's Form Wizard (DFW from now on, OK?) is a way to auto-generate a set of views w/ a single form in each view. Most of the time it uses one template but you can have a different template for each view. Most wizards have numbered steps but you can have named ones if you want. Also, most wizards deal with standard forms (<strong>highly</strong> recommended) but can, of course, use formsets and model forms.</p>
+<p>You've all used wizards before, I'm sure. A set of forms that you fill out in order and, at the end, something larger is assembled from the information you provided. Usually it's an account or the install of a program or something of the like. I needed to produce a new product in an online store.</p>
+</div>
+<div class="section" id="you-got-your-chocolate-in-my-peanut-butter">
+<h2>You Got Your Chocolate In My Peanut Butter</h2>
+<p>One thing I <em>hate</em> is putting logic where it doesn't belong. This is why you'll always see me importing my views classes (and creating view classes to begin with) into <cite>urls.py</cite>, even for views that go direct to template. As far as I'm concerned, <cite>urls.py</cite> is meant to be a mapping of regular expressions and nothing more.</p>
+<p>DFWs don't let me have that separation of concerns, though (at least not in my experiences). I ended up having to import views, <tt class="docutils literal">formset_factory</tt> and forms into <tt class="docutils literal">urls.py</tt> <strong>and</strong> build out a couple of objects in the file. The messiness eats away at my CDO (OCD but in alphabetical order like it should be) even now, a week later. If this, alone, could be fixed, I'd be a much happier person. I should be able to provide a <tt class="docutils literal">get_forms_list()</tt> method or <tt class="docutils literal">forms_list</tt> class-level variable on the wizard view. Same goes for specifying the <tt class="docutils literal">url_name</tt>, but I'm getting ahead of myself.</p>
+</div>
+<div class="section" id="the-view-part-one">
+<h2>The View, Part One</h2>
+<p>For an area with very little documentation, there are quite a few <tt class="docutils literal">WizardView</tt> sub-classes to pick from. The two most people will likely use are <tt class="docutils literal">SessionWizardView</tt> or <tt class="docutils literal">CookieWizardView</tt>, both of which work the same way but store the user's progress in a different place. The former obviously stores it in their session, the latter in a cookie on their machine. There are also named variants of both, <tt class="docutils literal">NamedUrlSessionWizardView</tt> and <tt class="docutils literal">NamedUrlCookieWizardView</tt>. I used the <tt class="docutils literal">NamedUrlSessionWizardView</tt> because I wanted named steps in the URL (just looks nicer) and I wanted it stored in the user's session.</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.formtools.wizard.views</span> <span class="kn">import</span> <span class="n">NamedUrlSessionWizardView</span>
+<span class="kn">from</span> <span class="nn">django.core.files.storage</span> <span class="kn">import</span> <span class="n">FileSystemStorage</span>
+
+<span class="k">class</span> <span class="nc">ProductWizardView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">NamedUrlSessionWizardView</span><span class="p">):</span>
+    <span class="n">file_storage</span> <span class="o">=</span> <span class="n">FileSystemStorage</span><span class="p">()</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;seller/wizard_form.html&quot;</span>
+</pre></div>
+<p>Notice that I specify a file storage instance. If you don't specify this, and you need to support <tt class="docutils literal">FileField</tt> or <tt class="docutils literal">ImageField</tt> in your forms, you'll get errors from Django. This is something else I think could be handled by the views better. Seems to me that it should just use whatever the default/specified storage is for the rest of your project/application.</p>
+</div>
+<div class="section" id="urls">
+<h2>URLs</h2>
+<p>Now we jump to <tt class="docutils literal">urls.py</tt>.</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.forms.formsets</span> <span class="kn">import</span> <span class="n">formset_factory</span>
+
+<span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">ProductModelForm</span><span class="p">,</span> <span class="n">ShippingForm</span><span class="p">,</span> <span class="n">PhotoForm</span>
+<span class="kn">from</span> <span class="nn">app.views</span> <span class="kn">import</span> <span class="n">ProductWizardView</span>
+
+<span class="n">shipping_formset</span> <span class="o">=</span> <span class="n">formset_factory</span><span class="p">(</span><span class="n">ShippingForm</span><span class="p">,</span> <span class="n">max_num</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">photo_formset</span> <span class="o">=</span> <span class="n">formset_factory</span><span class="p">(</span><span class="n">PhotoForm</span><span class="p">,</span> <span class="n">max_num</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">named_product_forms</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s">&quot;product&quot;</span><span class="p">,</span> <span class="n">ProductModelForm</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;shipping&quot;</span><span class="p">,</span> <span class="n">shipping_formset</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;photos&quot;</span><span class="p">,</span> <span class="n">photo_formset</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">product_wizard</span> <span class="o">=</span> <span class="n">ProductWizardView</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="n">named_product_forms</span><span class="p">,</span>
+    <span class="n">url_name</span><span class="o">=</span><span class="s">&quot;shop:product_wizard_step&quot;</span><span class="p">)</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&quot;^productwizard/(?P&lt;step&gt;[-\w]+)/$&quot;</span><span class="p">,</span> <span class="n">product_wizard</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&quot;product_wizard_step&quot;</span><span class="p">),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&quot;^productwizard/$&quot;</span><span class="p">,</span> <span class="n">product_wizard</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;product_wizard&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+<p>You can see what I mean about how messy <tt class="docutils literal">urls.py</tt> has quickly become.</p>
+<p>First, we import our forms and the view we stubbed out. Since I need multiple forms for building out shipping options and product photos, I spin up a couple of formset factories. For the record, I hate this implementation, too, if anyone wants to tackle a better invocation.</p>
+<p>The tuple of two-tuples that is <tt class="docutils literal">named_product_forms</tt> is where a bit of the magic happens. The first item in each tuple is the name of the step. This'll show up in your URL and you'll string-match this if you need to do special work on any given step (more on this in a minute). You pass this list of forms into your views <tt class="docutils literal">as_view()</tt> method when you instantiate the view, along with a name for the <strong>step</strong> version of your wizard view.</p>
+<p>In your <tt class="docutils literal">urlpatterns</tt>, you'll define two URLs for the one view, one that has a variable for the step and one that doesn't. These can probably be combined but, in my experiments, DFWs aren't really friendly to you being too clever.</p>
+</div>
+<div class="section" id="view-part-two">
+<h2>View, Part Two</h2>
+<p>All DFWs have a method named <tt class="docutils literal">done()</tt> that takes one explicit arg, <tt class="docutils literal">form_list</tt>, and then any kwargs you want to pass into it. This step is run when all of your forms have been submitted and they've all passed validation. Here is an approximation of my view's <tt class="docutils literal">done()</tt> method.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">done</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">product_form</span> <span class="o">=</span> <span class="n">form_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">shipping_forms</span> <span class="o">=</span> <span class="n">form_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">image_forms</span> <span class="o">=</span> <span class="n">form_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">productext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_product</span><span class="p">(</span><span class="n">product_form</span><span class="p">)</span>
+    <span class="n">shippings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_shippings</span><span class="p">(</span><span class="n">productext</span><span class="p">,</span> <span class="n">shipping_forms</span><span class="p">)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_images</span><span class="p">(</span><span class="n">productext</span><span class="p">,</span> <span class="n">image_forms</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">productext</span><span class="p">,</span> <span class="n">shippings</span><span class="p">,</span> <span class="n">images</span><span class="p">]):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&quot;wizard_product_wizard_view&quot;</span><span class="p">]</span>
+
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your product has been created.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_url</span><span class="p">(</span><span class="n">productext</span><span class="p">))</span>
+
+    <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Something went wrong creating your &quot;</span>
+        <span class="s">&quot;product. Please try again or contact support.&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&quot;shops:product_wizard&quot;</span><span class="p">))</span>
+</pre></div>
+<p>The first thing I do is assign my forms to different variables for ease of reach. I have a few methods on my class for creating each of my model types. Each of these methods returns either <tt class="docutils literal">True</tt> or <tt class="docutils literal">False</tt>, which makes my call to <tt class="docutils literal">any()</tt> the absolute easiest way to make sure they're all successful. If they are, I dump the wizard's variable from the session, set a message, and redirect (as you should always do after a <tt class="docutils literal">POST</tt>). If not, I set another message and redirect back to the wizard view. This'll send the user to the last step of the form, just in case something else has come up.</p>
+<p>One other method I overrode on the view is <tt class="docutils literal">get_form_kwargs</tt>.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">get_form_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="s">&quot;product&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{}</span>
+</pre></div>
+<p>Each step calls this method with either its index value or its name, depending on the type of DFW you're using. As you can see, I check to see if it's the product step and, if so, I return a dict with a <tt class="docutils literal">user</tt> variable set to the current request's user.</p>
+</div>
+<div class="section" id="forms-and-the-template">
+<h2>Forms And The Template</h2>
+<p>I haven't shown any forms because they're not really special. I recommend you stick with non-<tt class="docutils literal">ModelForm</tt> forms, though. Using <tt class="docutils literal">ModelForm</tt> forms seems like a great idea until you remember that no forms are really processed, other than making sure they pass <tt class="docutils literal">is_valid()</tt>, until the <tt class="docutils literal">done()</tt> step. That means that if you have a <cite>ModelForm</cite> on steps one and two and the form on step two relies on the model instance created by the form in step one, step two's form will never be valid.</p>
+<p>The template, also, isn't really special, in and of itself. In my implementation, though, I used <a class="reference external" href="http://django-crispy-forms.readthedocs.org/en/d-0/">django-crispy-forms</a> and that presented a small problem to my normal flow.</p>
+<p>Usually, in templates, I do something like the following to render a form:</p>
+<div class="highlight"><pre>{% load crispy_forms_tags %}
+{% crispy form %}
+</pre></div>
+<p>That'll work great with DFWs with one small change in your form's helper.</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">WizardForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span> <span class="o">=</span> <span class="n">FormHelper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">form_tag</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+</pre></div>
+<p>I had to tell my forms not to render the form tag since I needed to be able to override the <tt class="docutils literal">enctype</tt> on the tag. I also left off any submit buttons since you can add &quot;Previous&quot; and &quot;First&quot; buttons to the forms too.</p>
+</div>
+<div class="section" id="conclusion">
+<h2>Conclusion</h2>
+<p>Hopefully this gives you a pretty good idea of how to implement DFWs in your own product. They're a fairly useful way to create new items or lead a user through a lengthy form or process. Sadly it's not really useful for editing since it's difficult to pass in instances in the appropriate places. I'd love to see the docs expanded on this. I'd also love to see the implementation expanded to make it easier to handle DFWs for editing existing instances.</p>
+</div>
+
+    </article>
+
+	
+	<section>
+		<header>
+			<h1>Comments</h1>
+		</header>
+		<div id="disqus_thread"></div>
+	</section>
+	
+
+
+            </div>
+        </div>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href=".././">ATOM feed</a></p></footer>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src=".././brack3t-theme/assets/jquery-1.8.2.min.js"></script>
+    <script src=".././brack3t-theme/assets/modernizr.js"></script>
+    <script src=".././brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src=".././brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src=".././brack3t-theme/assets/highlight.pack.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText({
+                "maxFontSize": 200,
+                "viewportBreakpoint": 768
+            });
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
+        });
+    </script>
+  </body>
+</html>
