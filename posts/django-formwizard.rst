@@ -108,7 +108,7 @@ All DFWs have a method named ``done()`` that takes one explicit arg, ``form_list
 
 The first thing I do is assign my forms to different variables for ease of reach. I have a few methods on my class for creating each of my model types. Each of these methods returns either ``True`` or ``False``, which makes my call to ``any()`` the absolute easiest way to make sure they're all successful. If they are, I dump the wizard's variable from the session, set a message, and redirect (as you should always do after a ``POST``). If not, I set another message and redirect back to the wizard view. This'll send the user to the last step of the form, just in case something else has come up. If, somehow, the user got to the ``done()`` step before completing the entire wizard, they'd be redirected to the last step they completed.
 
-The session variable is created by Django by appending an un-camel-cased version of your class name to the word "wizard_". This isn't specified in the docs anywhere, but you can see the build up of it `here in Github`_. I found it just by examining the ``request.session`` object in a PDB shell.
+The session variable is created by Django by appending, with underscores, an un-camel-cased version of your class name to the word "wizard". This isn't specified in the docs anywhere, but you can see the build up of it `here in Github`_. I found it just by examining the ``request.session`` object in a PDB shell.
 
 One other method I overrode on the view is ``get_form_kwargs``.
 

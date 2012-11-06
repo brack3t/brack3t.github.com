@@ -159,7 +159,7 @@
     <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&quot;product_wizard&quot;</span><span class="p">))</span>
 </pre></div>
 <p>The first thing I do is assign my forms to different variables for ease of reach. I have a few methods on my class for creating each of my model types. Each of these methods returns either <tt class="docutils literal">True</tt> or <tt class="docutils literal">False</tt>, which makes my call to <tt class="docutils literal">any()</tt> the absolute easiest way to make sure they're all successful. If they are, I dump the wizard's variable from the session, set a message, and redirect (as you should always do after a <tt class="docutils literal">POST</tt>). If not, I set another message and redirect back to the wizard view. This'll send the user to the last step of the form, just in case something else has come up. If, somehow, the user got to the <tt class="docutils literal">done()</tt> step before completing the entire wizard, they'd be redirected to the last step they completed.</p>
-<p>The session variable is created by Django by appending an un-camel-cased version of your class name to the word &quot;<a href="#id1"><span class="problematic" id="id2">wizard_</span></a>&quot;. This isn't specified in the docs anywhere, but you can see the build up of it <a class="reference external" href="https://github.com/django/django/blob/master/django/contrib/formtools/wizard/storage/base.py#L16">here in Github</a>. I found it just by examining the <tt class="docutils literal">request.session</tt> object in a PDB shell.</p>
+<p>The session variable is created by Django by appending, with underscores, an un-camel-cased version of your class name to the word &quot;wizard&quot;. This isn't specified in the docs anywhere, but you can see the build up of it <a class="reference external" href="https://github.com/django/django/blob/master/django/contrib/formtools/wizard/storage/base.py#L16">here in Github</a>. I found it just by examining the <tt class="docutils literal">request.session</tt> object in a PDB shell.</p>
 <p>One other method I overrode on the view is <tt class="docutils literal">get_form_kwargs</tt>.</p>
 <div class="highlight"><pre><span class="k">def</span> <span class="nf">get_form_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="s">&quot;product&quot;</span><span class="p">:</span>
@@ -190,12 +190,6 @@
 <div class="section" id="conclusion">
 <h2>Conclusion</h2>
 <p>Hopefully this gives you a pretty good idea of how to implement DFWs in your own product. They're a fairly useful way to create new items or lead a user through a lengthy form or process. Sadly it's not really useful for editing since it's difficult to pass in instances in the appropriate places. I'd love to see the docs expanded on this, both with actual documentation and with better examples.</p>
-</div>
-<div class="system-messages section">
-<h2>Docutils System Messages</h2>
-<div class="system-message" id="id1">
-<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">./posts/django-formwizard.rst</tt>, line 111); <em><a href="#id2">backlink</a></em></p>
-Unknown target name: &quot;wizard&quot;.</div>
 </div>
 
     </article>
