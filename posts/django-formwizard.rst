@@ -5,7 +5,6 @@ Not Exactly Tim the Enchanter
 :author: Kenneth
 :category: django
 :tags: django, forms, formwizard
-:status: draft
 
 Django has always been hailed as having great, awesome documentation. And, for the most part, this distinction has been deserved. But every once in a while, you find an area that's just...lacking. An area that you know exists but you've never gone into because it didn't come up and no one else used it but then you *finally* got a reason to use it...and then you find out it's so lacking in documentation that you have to dive into the source code.
 
