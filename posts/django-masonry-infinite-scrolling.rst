@@ -4,7 +4,6 @@ Masonry, Infinite Scrolling, and Django
 
 :author: Kenneth
 :tags: django, javascript
-:status: draft
 
 For my current client, we needed a home page that would support a large number of products (it's an ecommerce startup) and, in our first iteration of the new design, deal with content blocks of various sizes. To me, this was a perfect use-case for the Masonry_ jQuery plugin and infinite scrolling, in the vein of Pinterest_. Turns out, this is remarkably easy with Django's ListView_ and the `Infinite Scroll`_ plugin from Paul Irish.
 

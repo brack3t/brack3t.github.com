@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <title>Masonry, Infinite Scrolling, and Django [ brack3t ]</title>
+    <meta name="description" content="">
+    <meta name="author" content="Brack3t, aka Kenneth Love and Chris Jones">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/ico" href="./brack3t-theme/assets/favicon.ico">
+    <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="brack3t ATOM Feed">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://fonts.googleapis.com/css?family=Exo:200,300,500,700,900,200italic,300italic,500italic,700italic,900italic" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/github.css" rel="stylesheet">
+    <link href="./brack3t-theme/assets/bootstrap/css/brack3t.css" rel="stylesheet">
+    <script>
+    var _gaq = _gaq || [];
+    _gaq.push(["_setAccount", "UA-4642386-4"]);
+    _gaq.push(["_trackPageview"]);
+
+    (function() {
+        var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+        ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+	
+<script type="text/javascript">
+	var disqus_identifier = "masonry-infinite-scrolling-and-django.html";
+	(function() {
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = 'http://brack3t.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	})();
+</script>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="row-fluid">
+            <div class="span8">
+                <header id="logo" role="banner">
+                    <h1><a href="/">Brack3t</a></h1>
+                    <p>Two guys&hellip; and Python.</p>
+                </header>
+            </div>
+            <aside class="span2" id="sidebar" role="complementary">
+                <nav>
+                    <ul class="unstyled">
+                        
+                        
+                            
+                        
+                        <li><a href="./pages/projects.html">Projects</a></li>
+                        <li><a href="./archives.html">Archives</a></li>
+                        <li><a href="./tags.html">Tags</a></li>
+                    </ul>
+                </nav>
+            </aside>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span7 offset1" id="main" role="main">
+                
+                
+    <article>
+        <header>
+            <h1><a href="./masonry-infinite-scrolling-and-django.html" class="slabtext">Masonry, Infinite Scrolling, and Django</a></h1>
+            <h6><span class="permalink">Published: <a  href="./masonry-infinite-scrolling-and-django.html">12-03-2012</a></span>
+<span class="author">by <strong>Kenneth</strong></span>
+<span class="tags">tags: <a href="./tag/django.html">django</a> <a href="./tag/javascript.html">javascript</a> </span>
+
+</h6>
+        </header>
+        <p>For my current client, we needed a home page that would support a large number of products (it's an ecommerce startup) and, in our first iteration of the new design, deal with content blocks of various sizes. To me, this was a perfect use-case for the <a class="reference external" href="http://masonry.desandro.com">Masonry</a> jQuery plugin and infinite scrolling, in the vein of <a class="reference external" href="http://pinterest.com">Pinterest</a>. Turns out, this is remarkably easy with Django's <a class="reference external" href="http://ccbv.co.uk/projects/Django/1.4/django.views.generic.list/ListView/">ListView</a> and the <a class="reference external" href="http://infinite-scroll.com">Infinite Scroll</a> plugin from Paul Irish.</p>
+<div class="section" id="the-django-side">
+<h2>The Django Side</h2>
+<p>Setting up your view in Django is amazingly simple. We're using the <a class="reference external" href="https://github.com/jamespacileo/django-pure-pagination">Pure Pagination</a> pluggable app because we're using <a class="reference external" href="http://getbootstrap.com">Bootstrap</a> and want to show their style of pagination with page ranges left out if there are more than a given number of pages (e.g. Pages 1, 2, 3, ..., 9, 10, 11, ..., 17, 18, 19). For the sake of this example, I'll assume you have a template partial that contains your pagination markup. My common naming scheme for this is <tt class="docutils literal">_pagination.html</tt> in a <tt class="docutils literal">_partials</tt> directory in my site-wide <tt class="docutils literal">templates</tt> directory.</p>
+<p>So, for our example, we want to show 20 products from our <tt class="docutils literal">Product</tt> model (creative naming, I know). We set up our view like so:</p>
+<div class="highlight"><pre><span class="x">from django.views.generic import ListView</span>
+
+<span class="x">from pure_pagination.mixins import PaginationMixin</span>
+
+
+<span class="x">class ProductListView(PaginationMixin, ListView):</span>
+<span class="x">    model = Product</span>
+<span class="x">    paginate_by = 20</span>
+</pre></div>
+<p>We don't need to specify the template name or the queryset since we want to use the defaults. We add the view to our <tt class="docutils literal">urls.py</tt>:</p>
+<div class="highlight"><pre><span class="x">from store.views import ProductListView</span>
+
+<span class="x">urlpatterns = patterns(&#39;&#39;,</span>
+<span class="x">    [...your other routes here...],</span>
+<span class="x">    url(r&quot;^products/$&quot;, ProductListView.as_view(), name=&quot;products&quot;),</span>
+<span class="x">)</span>
+</pre></div>
+<p>And, finally, in our <tt class="docutils literal">store/product_list.html</tt> template, we render the items:</p>
+<div class="highlight"><pre>{% load humanize i18n %}
+[...other HTML here..]
+<span class="nt">&lt;ul</span> <span class="na">class=</span><span class="s">&quot;unstyled wall&quot;</span><span class="nt">&gt;</span>
+    {% for product in object_list %}
+    <span class="nt">&lt;li</span> <span class="na">class=</span><span class="s">&quot;brick&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;thumbnail&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&quot;{{ product.get_absolute_url }}&quot;</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">&quot;{{ product.image.url }}&quot;</span> <span class="na">alt=</span><span class="s">&quot;{{ product.name }}&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;/a&gt;</span>
+            <span class="nt">&lt;div&gt;</span>
+                <span class="nt">&lt;h3&gt;</span>
+                    <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&quot;{{ product.get_absolute_url }}&quot;</span><span class="nt">&gt;</span>
+                        {{ product.name }}<span class="nt">&lt;/a&gt;</span>
+                <span class="nt">&lt;/h3&gt;</span>
+                <span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">&quot;price&quot;</span><span class="nt">&gt;</span>
+                    ${{ product.price|intcomma }}<span class="nt">&lt;br&gt;</span>
+                    {% if product.num_in_stock &gt; 0 %}
+                        {% trans &quot;In Stock&quot; %}
+                    {% else %}
+                        {% trans &quot;Sold Out&quot; %}
+                    {% endif %}
+                <span class="nt">&lt;/p&gt;</span>
+                <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;description muted&quot;</span><span class="nt">&gt;</span>
+                    {{ product.description|capfirst|striptags }}
+                <span class="nt">&lt;/div&gt;</span>
+            <span class="nt">&lt;/div&gt;</span>
+        <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/li&gt;</span>
+    {% endfor %}
+<span class="nt">&lt;/ul&gt;</span>
+{% include &quot;_pagination.html&quot; %}
+[...other HTML here..]
+</pre></div>
+<p>As you can see, nothing really special in the HTML. We simply print out the product image, name, price, availability, and description. We include the pagination HTML, too, as we need that for both the Infinite Scroll plugin and to be available for bots and users without Javascript enabled. The only thing left to do is to include the necessary Javascript libraries in your HTML template. I used the jQuery version of Masonry and also included the <a class="reference external" href="https://github.com/desandro/imagesloaded">Images Loaded</a> plugin to trigger Masonry only after images are loaded to make sure the layout is correct.</p>
+</div>
+<div class="section" id="the-javascript-side">
+<h2>The Javascript Side</h2>
+<p>So with jQuery, Masonry, Image Loaded, and Infinite Scroll all included, it's time to build the small bit of functionality required make this all come together. In your product wall template, or site-wide if you're using this everywhere, either include the following bit of Javascript or stick it into an included file.</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">$container</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.wall&quot;</span><span class="p">);</span>
+
+<span class="nx">$</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">$container</span><span class="p">.</span><span class="nx">imagesLoaded</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">$container</span><span class="p">.</span><span class="nx">masonry</span><span class="p">({</span>
+            <span class="nx">itemSelector</span> <span class="o">:</span> <span class="s1">&#39;.brick&#39;</span><span class="p">,</span>
+            <span class="nx">gutterWidth</span><span class="o">:</span> <span class="mi">25</span><span class="p">,</span>
+            <span class="nx">columnWidth</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">screenWidth</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span>
+                    <span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">.</span><span class="nx">getBoundingClientRect</span><span class="p">().</span><span class="nx">width</span><span class="p">,</span>
+                    <span class="mi">10</span>
+                <span class="p">)</span> <span class="o">||</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">screen</span><span class="p">.</span><span class="nx">width</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nx">screenWidth</span> <span class="o">&lt;</span> <span class="mi">768</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">return</span> <span class="nx">$container</span><span class="p">.</span><span class="nx">width</span><span class="p">();</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">screenWidth</span> <span class="o">&gt;</span> <span class="mi">768</span> <span class="o">&amp;&amp;</span> <span class="nx">screenWidth</span> <span class="o">&lt;</span> <span class="mi">980</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="nx">$container</span><span class="p">.</span><span class="nx">width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">20</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="k">return</span> <span class="p">(</span><span class="nx">$container</span><span class="p">.</span><span class="nx">width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mi">20</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">});</span>
+
+    <span class="nx">$container</span><span class="p">.</span><span class="nx">infinitescroll</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="nx">navSelector</span><span class="o">:</span> <span class="s2">&quot;.pagination&quot;</span><span class="p">,</span>
+            <span class="nx">nextSelector</span><span class="o">:</span> <span class="s2">&quot;.next&quot;</span><span class="p">,</span>
+            <span class="nx">itemSelector</span><span class="o">:</span> <span class="s2">&quot;.wall .brick&quot;</span><span class="p">,</span>
+            <span class="nx">loading</span><span class="o">:</span> <span class="p">{</span>
+                <span class="nx">finishedMsg</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="nx">img</span><span class="o">:</span> <span class="s2">&quot;http://pathtoyour.com/loading.gif&quot;</span><span class="p">,</span>
+                <span class="nx">msg</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+                <span class="nx">msgText</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="kd">function</span> <span class="p">(</span><span class="nx">newProducts</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">$newProds</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">newProducts</span><span class="p">).</span><span class="nx">css</span><span class="p">({</span><span class="s2">&quot;opacity&quot;</span><span class="o">:</span> <span class="mi">0</span><span class="p">});</span>
+            <span class="nx">$newProds</span><span class="p">.</span><span class="nx">imagesLoaded</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+                <span class="nx">$newProds</span><span class="p">.</span><span class="nx">animate</span><span class="p">({</span><span class="s2">&quot;opacity&quot;</span><span class="o">:</span> <span class="mi">1</span><span class="p">});</span>
+                <span class="nx">$container</span><span class="p">.</span><span class="nx">masonry</span><span class="p">(</span><span class="s2">&quot;appended&quot;</span><span class="p">,</span> <span class="nx">$newProds</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+<p>The first thing we do is cache our selector. We want the <tt class="docutils literal">&lt;ul&gt;</tt> with a class of <tt class="docutils literal">wall</tt>. Then, when the page is loaded, we add the <tt class="docutils literal">.imagesLoaded</tt> functionality to the wall. When it sees that all the images in that selector are loaded, it fires off Masonry on the container. I have anything with the class of <tt class="docutils literal">brick</tt> set as an item and a gutter width of 25 pixels. Then, to define how wide each column is, we do a bit of math on the size of the window. I'm using the same generic(-ish) numbers that Bootstrap uses to define a small/medium/large or phone/tablet/desktop version and how many columns I want in each. I either send back one column, two columns, or three.</p>
+<p>The last section loads the <tt class="docutils literal">.infinitescroll</tt> method onto my container. Within it, I specify that an element with the class of <tt class="docutils literal">pagination</tt> contains the...well, pagination. And that, within that element, the link that points to the next set of content always has the class name of <tt class="docutils literal">next</tt>. Finally, for <tt class="docutils literal">itemSelector</tt>, I specify that the content on the next page will be anything selected by <tt class="docutils literal">.wall .brick</tt>, which effectively grabs all of the products from the next page.</p>
+<p>In the loading section, most of what I'm doing is just cancelling out defaults. I specify an animated GIF to show during loading and set all the messages to blank. In my CSS, I actually hide the animated GIF because, due to how Masonry works, there's no good way to position it at the bottom of the list of elements.</p>
+<p>Finally, the function passed as a callback at the end handles what Infinite Scrolling does when it loads the next page of content. We set all of the new products to have 0% opacity, and, when all of their images have loaded, animate the opacity back to 100% and append the products into the existing Masonry layout.</p>
+</div>
+<div class="section" id="conclusion">
+<h2>Conclusion</h2>
+<p>So all of this together, the ListView, the pagination mixin and partial, and the Javascripts, gives you infinite scrolling and a Masonry layout. Sure, it looks a decent amount like Pinterest, but I think that can actually work quite a bit in your favor. It's something people have gotten very used to and it makes sense. One thing we've noticed, though, is that, with very disparate brick heights, your newly-loaded bricks come in and appear out of order. They're still ordered correctly in the source, but may not visually line up. I'll leave that as an exercise for the implementer to make your bricks either equal-height or within a certain range to help prevent that display &quot;bug&quot;. Also, page refreshes send a vistor all the way back to the first page, so implementing some ability to automatically jump the user back to where they were in the stack would be a good exercise, too.</p>
+</div>
+
+    </article>
+
+	
+	<section>
+		<header>
+			<h1>Comments</h1>
+		</header>
+		<div id="disqus_thread"></div>
+	</section>
+	
+
+
+            </div>
+        </div>
+        <footer><p>&copy; Brack3t. All rights reserved. <a href="./feeds/all.atom.xml">ATOM feed</a></p></footer>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./brack3t-theme/assets/jquery-1.8.2.min.js"></script>
+    <script src="./brack3t-theme/assets/modernizr.js"></script>
+    <script src="./brack3t-theme/assets/jquery.slabtext.min.js"></script>
+    <script src="./brack3t-theme/assets/jquery.fittext.js"></script>
+    <script src="./brack3t-theme/assets/highlight.pack.js"></script>
+    <script>
+        $(function() {
+            $(".slabtext").slabText({
+                "maxFontSize": 200,
+                "viewportBreakpoint": 768
+            });
+            $(".highlight pre").each(function(i, e) {hljs.highlightBlock(e, "    ")});
+        });
+    </script>
+  </body>
+</html>

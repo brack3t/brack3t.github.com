@@ -1,5 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com/" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com/</id><updated>2012-11-06T10:30:51Z</updated><entry><title>Not Exactly Tim the Enchanter</title><link href="http://brack3t.com/not-exactly-tim-the-enchanter.html" rel="alternate"></link><updated>2012-11-06T10:30:51Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-11-06:not-exactly-tim-the-enchanter.html</id><summary type="html">&lt;p&gt;Django has always been hailed as having great, awesome documentation. And, for the most part, this distinction has been deserved. But every once in a while, you find an area that's just...lacking. An area that you know exists but you've never gone into because it didn't come up and no one else used it but then you &lt;em&gt;finally&lt;/em&gt; got a reason to use it...and then you find out it's so lacking in documentation that you have to dive into the source code.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>brack3t</title><link href="http://brack3t.com/" rel="alternate"></link><link href="http://brack3t.com/feeds/all-en.atom.xml" rel="self"></link><id>http://brack3t.com/</id><updated>2012-12-03T15:01:16Z</updated><entry><title>Masonry, Infinite Scrolling, and Django</title><link href="http://brack3t.com/masonry-infinite-scrolling-and-django.html" rel="alternate"></link><updated>2012-12-03T15:01:16Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-12-03:masonry-infinite-scrolling-and-django.html</id><summary type="html">&lt;p&gt;For my current client, we needed a home page that would support a large number of products (it's an ecommerce startup) and, in our first iteration of the new design, deal with content blocks of various sizes. To me, this was a perfect use-case for the &lt;a class="reference external" href="http://masonry.desandro.com"&gt;Masonry&lt;/a&gt; jQuery plugin and infinite scrolling, in the vein of &lt;a class="reference external" href="http://pinterest.com"&gt;Pinterest&lt;/a&gt;. Turns out, this is remarkably easy with Django's &lt;a class="reference external" href="http://ccbv.co.uk/projects/Django/1.4/django.views.generic.list/ListView/"&gt;ListView&lt;/a&gt; and the &lt;a class="reference external" href="http://infinite-scroll.com"&gt;Infinite Scroll&lt;/a&gt; plugin from Paul Irish.&lt;/p&gt;
+&lt;div class="section" id="the-django-side"&gt;
+&lt;h2&gt;The Django Side&lt;/h2&gt;
+&lt;p&gt;Setting up your view in Django is amazingly simple. We're using the &lt;a class="reference external" href="https://github.com/jamespacileo/django-pure-pagination"&gt;Pure Pagination&lt;/a&gt; pluggable app because we're using &lt;a class="reference external" href="http://getbootstrap.com"&gt;Bootstrap&lt;/a&gt; and want to show their style of pagination with page ranges left out if there are more than a given number of pages (e.g. Pages 1, 2, 3, ..., 9, 10, 11, ..., 17, 18, 19). For the sake of this example, I'll assume you have a template partial that contains your pagination markup. My common naming scheme for this is &lt;tt class="docutils literal"&gt;_pagination.html&lt;/tt&gt; in a &lt;tt class="docutils literal"&gt;_partials&lt;/tt&gt; directory in my site-wide &lt;tt class="docutils literal"&gt;templates&lt;/tt&gt; directory.&lt;/p&gt;
+&lt;p&gt;So, for our example, we want to show 20 products from our &lt;tt class="docutils literal"&gt;Product&lt;/tt&gt; model (creative naming, I know). We set up our view like so:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from django.views.generic import ListView&lt;/span&gt;
+
+&lt;span class="x"&gt;from pure_pagination.mixins import PaginationMixin&lt;/span&gt;
+
+
+&lt;span class="x"&gt;class ProductListView(PaginationMixin, ListView):&lt;/span&gt;
+&lt;span class="x"&gt;    model = Product&lt;/span&gt;
+&lt;span class="x"&gt;    paginate_by = 20&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We don't need to specify the template name or the queryset since we want to use the defaults. We add the view to our &lt;tt class="docutils literal"&gt;urls.py&lt;/tt&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;from store.views import ProductListView&lt;/span&gt;
+
+&lt;span class="x"&gt;urlpatterns = patterns(&amp;#39;&amp;#39;,&lt;/span&gt;
+&lt;span class="x"&gt;    [...your other routes here...],&lt;/span&gt;
+&lt;span class="x"&gt;    url(r&amp;quot;^products/$&amp;quot;, ProductListView.as_view(), name=&amp;quot;products&amp;quot;),&lt;/span&gt;
+&lt;span class="x"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And, finally, in our &lt;tt class="docutils literal"&gt;store/product_list.html&lt;/tt&gt; template, we render the items:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% load humanize i18n %}
+[...other HTML here..]
+&lt;span class="nt"&gt;&amp;lt;ul&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;unstyled wall&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    {% for product in object_list %}
+    &lt;span class="nt"&gt;&amp;lt;li&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;brick&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;thumbnail&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ product.get_absolute_url }}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ product.image.url }}&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;alt=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ product.name }}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;h3&amp;gt;&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ product.get_absolute_url }}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                        {{ product.name }}&lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;/h3&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;p&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;price&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                    ${{ product.price|intcomma }}&lt;span class="nt"&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
+                    {% if product.num_in_stock &amp;gt; 0 %}
+                        {% trans &amp;quot;In Stock&amp;quot; %}
+                    {% else %}
+                        {% trans &amp;quot;Sold Out&amp;quot; %}
+                    {% endif %}
+                &lt;span class="nt"&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;description muted&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                    {{ product.description|capfirst|striptags }}
+                &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
+    {% endfor %}
+&lt;span class="nt"&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;
+{% include &amp;quot;_pagination.html&amp;quot; %}
+[...other HTML here..]
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, nothing really special in the HTML. We simply print out the product image, name, price, availability, and description. We include the pagination HTML, too, as we need that for both the Infinite Scroll plugin and to be available for bots and users without Javascript enabled. The only thing left to do is to include the necessary Javascript libraries in your HTML template. I used the jQuery version of Masonry and also included the &lt;a class="reference external" href="https://github.com/desandro/imagesloaded"&gt;Images Loaded&lt;/a&gt; plugin to trigger Masonry only after images are loaded to make sure the layout is correct.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-javascript-side"&gt;
+&lt;h2&gt;The Javascript Side&lt;/h2&gt;
+&lt;p&gt;So with jQuery, Masonry, Image Loaded, and Infinite Scroll all included, it's time to build the small bit of functionality required make this all come together. In your product wall template, or site-wide if you're using this everywhere, either include the following bit of Javascript or stick it into an included file.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;$container&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wall&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;imagesLoaded&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;masonry&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+            &lt;span class="nx"&gt;itemSelector&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;.brick&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;gutterWidth&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;columnWidth&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;screenWidth&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;parseInt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                    &lt;span class="nb"&gt;document&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;documentElement&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getBoundingClientRect&lt;/span&gt;&lt;span class="p"&gt;().&lt;/span&gt;&lt;span class="nx"&gt;width&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="mi"&gt;10&lt;/span&gt;
+                &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="nb"&gt;parseInt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;screen&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;width&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;screenWidth&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;768&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;width&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;screenWidth&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;768&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;screenWidth&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;980&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;width&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;width&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;});&lt;/span&gt;
+    &lt;span class="p"&gt;});&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;infinitescroll&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nx"&gt;navSelector&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.pagination&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;nextSelector&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.next&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;itemSelector&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.wall .brick&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;loading&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;finishedMsg&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nx"&gt;img&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;http://pathtoyour.com/loading.gif&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nx"&gt;msg&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nx"&gt;msgText&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;newProducts&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;$newProds&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;newProducts&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;css&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;opacity&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+            &lt;span class="nx"&gt;$newProds&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;imagesLoaded&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;$newProds&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;animate&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;opacity&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+                &lt;span class="nx"&gt;$container&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;masonry&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;appended&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;$newProds&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="p"&gt;});&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The first thing we do is cache our selector. We want the &lt;tt class="docutils literal"&gt;&amp;lt;ul&amp;gt;&lt;/tt&gt; with a class of &lt;tt class="docutils literal"&gt;wall&lt;/tt&gt;. Then, when the page is loaded, we add the &lt;tt class="docutils literal"&gt;.imagesLoaded&lt;/tt&gt; functionality to the wall. When it sees that all the images in that selector are loaded, it fires off Masonry on the container. I have anything with the class of &lt;tt class="docutils literal"&gt;brick&lt;/tt&gt; set as an item and a gutter width of 25 pixels. Then, to define how wide each column is, we do a bit of math on the size of the window. I'm using the same generic(-ish) numbers that Bootstrap uses to define a small/medium/large or phone/tablet/desktop version and how many columns I want in each. I either send back one column, two columns, or three.&lt;/p&gt;
+&lt;p&gt;The last section loads the &lt;tt class="docutils literal"&gt;.infinitescroll&lt;/tt&gt; method onto my container. Within it, I specify that an element with the class of &lt;tt class="docutils literal"&gt;pagination&lt;/tt&gt; contains the...well, pagination. And that, within that element, the link that points to the next set of content always has the class name of &lt;tt class="docutils literal"&gt;next&lt;/tt&gt;. Finally, for &lt;tt class="docutils literal"&gt;itemSelector&lt;/tt&gt;, I specify that the content on the next page will be anything selected by &lt;tt class="docutils literal"&gt;.wall .brick&lt;/tt&gt;, which effectively grabs all of the products from the next page.&lt;/p&gt;
+&lt;p&gt;In the loading section, most of what I'm doing is just cancelling out defaults. I specify an animated GIF to show during loading and set all the messages to blank. In my CSS, I actually hide the animated GIF because, due to how Masonry works, there's no good way to position it at the bottom of the list of elements.&lt;/p&gt;
+&lt;p&gt;Finally, the function passed as a callback at the end handles what Infinite Scrolling does when it loads the next page of content. We set all of the new products to have 0% opacity, and, when all of their images have loaded, animate the opacity back to 100% and append the products into the existing Masonry layout.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="conclusion"&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;So all of this together, the ListView, the pagination mixin and partial, and the Javascripts, gives you infinite scrolling and a Masonry layout. Sure, it looks a decent amount like Pinterest, but I think that can actually work quite a bit in your favor. It's something people have gotten very used to and it makes sense. One thing we've noticed, though, is that, with very disparate brick heights, your newly-loaded bricks come in and appear out of order. They're still ordered correctly in the source, but may not visually line up. I'll leave that as an exercise for the implementer to make your bricks either equal-height or within a certain range to help prevent that display &amp;quot;bug&amp;quot;. Also, page refreshes send a vistor all the way back to the first page, so implementing some ability to automatically jump the user back to where they were in the stack would be a good exercise, too.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="django"></category><category term="javascript"></category></entry><entry><title>Not Exactly Tim the Enchanter</title><link href="http://brack3t.com/not-exactly-tim-the-enchanter.html" rel="alternate"></link><updated>2012-11-06T10:30:51Z</updated><author><name>Kenneth</name></author><id>tag:brack3t.com,2012-11-06:not-exactly-tim-the-enchanter.html</id><summary type="html">&lt;p&gt;Django has always been hailed as having great, awesome documentation. And, for the most part, this distinction has been deserved. But every once in a while, you find an area that's just...lacking. An area that you know exists but you've never gone into because it didn't come up and no one else used it but then you &lt;em&gt;finally&lt;/em&gt; got a reason to use it...and then you find out it's so lacking in documentation that you have to dive into the source code.&lt;/p&gt;
 &lt;p&gt;This is one of those areas. Welcome to &lt;a class="reference external" href="https://docs.djangoproject.com/en/1.4/ref/contrib/formtools/form-wizard/"&gt;Django Form Wizard&lt;/a&gt;.&lt;/p&gt;
 &lt;div class="section" id="what-is-django-form-wizard"&gt;
 &lt;h2&gt;What is Django Form Wizard?&lt;/h2&gt;
