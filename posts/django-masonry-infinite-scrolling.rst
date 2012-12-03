@@ -47,11 +47,21 @@ And, finally, in our ``store/product_list.html`` template, we render the items:
         {% for product in object_list %}
         <li class="brick">
             <div class="thumbnail">
-                <a href="{{ product.get_absolute_url }}"><img src="{{ product.image.url }}" alt="{{ product.name }}"></a>
+                <a href="{{ product.get_absolute_url }}">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                </a>
                 <div>
-                    <h3><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
-                    <p class="price">${{ product.price|intcomma }}<br>
-                        {% if product.num_in_stock > 0 %}{% trans "In Stock" %}{% else %}{% trans "Sold Out" %}{% endif %}
+                    <h3>
+                        <a href="{{ product.get_absolute_url }}">
+                            {{ product.name }}</a>
+                    </h3>
+                    <p class="price">
+                        ${{ product.price|intcomma }}<br>
+                        {% if product.num_in_stock > 0 %}
+                            {% trans "In Stock" %}
+                        {% else %}
+                            {% trans "Sold Out" %}
+                        {% endif %}
                     </p>
                     <div class="description muted">
                         {{ product.description|capfirst|striptags }}
@@ -81,7 +91,11 @@ So with jQuery, Masonry, Image Loaded, and Infinite Scroll all included, it's ti
                 itemSelector : '.brick',
                 gutterWidth: 25,
                 columnWidth: function () {
-                    var screenWidth = parseInt(document.documentElement.getBoundingClientRect().width, 10) || parseInt(screen.width, 10);
+                    var screenWidth = parseInt(
+                        document.documentElement.getBoundingClientRect().width,
+                        10
+                    ) || parseInt(screen.width, 10);
+
                     if (screenWidth < 768) {
                         return $container.width();
                     } else if (screenWidth > 768 && screenWidth < 980) {
