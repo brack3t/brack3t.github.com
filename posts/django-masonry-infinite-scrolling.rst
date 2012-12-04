@@ -140,6 +140,11 @@ Conclusion
 
 So all of this together, the ListView, the pagination mixin and partial, and the Javascripts, gives you infinite scrolling and a Masonry layout. Sure, it looks a decent amount like Pinterest, but I think that can actually work quite a bit in your favor. It's something people have gotten very used to and it makes sense. One thing we've noticed, though, is that, with very disparate brick heights, your newly-loaded bricks come in and appear out of order. They're still ordered correctly in the source, but may not visually line up. I'll leave that as an exercise for the implementer to make your bricks either equal-height or within a certain range to help prevent that display "bug". Also, page refreshes send a vistor all the way back to the first page, so implementing some ability to automatically jump the user back to where they were in the stack would be a good exercise, too.
 
+Update
+======
+
+Since people have been asking, you can see it in action at `Tindie`_ on the front page and any category or type page.
+
 
 .. _Masonry: http://masonry.desandro.com
 .. _Pinterest: http://pinterest.com
@@ -148,3 +153,4 @@ So all of this together, the ListView, the pagination mixin and partial, and the
 .. _Pure Pagination: https://github.com/jamespacileo/django-pure-pagination
 .. _Bootstrap: http://getbootstrap.com
 .. _Images Loaded: https://github.com/desandro/imagesloaded
+.. _Tindie: https://tindie.com
